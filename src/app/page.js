@@ -1,5 +1,6 @@
 import HeroSection from "@/components/Hero";
 import LatestFeatures from "@/components/LatestFeatures";
+import Statistics from "@/components/Statistics";
 import TopFreelancers from "@/components/TopFreelancer";
 
 const HomePage = () => {
@@ -8,6 +9,7 @@ const HomePage = () => {
    <HeroSection />
    <LatestFeatures />
    <TopFreelancers />
+   <Statistics />
    </>
   )
 }
