@@ -1,3 +1,4 @@
+import Footer from "@/components/Footer";
 import HeroSection from "@/components/Hero";
 import LatestFeatures from "@/components/LatestFeatures";
 import Statistics from "@/components/Statistics";
@@ -10,6 +11,7 @@ const HomePage = () => {
    <LatestFeatures />
    <TopFreelancers />
    <Statistics />
+   <Footer/>
    </>
   )
 }
