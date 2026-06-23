@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 
 function BrowseTasksContent() {
   const router = useRouter();
@@ -220,7 +221,7 @@ function BrowseTasksContent() {
           </button>
         </form>
 
-        <div className="flex flex-wrap items-center gap-2 mb-8 min-h-[26px]">
+        <div className="flex flex-wrap items-center gap-2 mb-8 min-h-6.5">
           {(urlCategory !== "All" && urlCategory !== "All Categories") && (
             <span className="bg-white border border-black/10 text-black/70 text-[10px] font-bold font-mono px-2 py-1 flex items-center gap-1.5">
               {urlCategory}
@@ -256,8 +257,9 @@ function BrowseTasksContent() {
               const taskKey = task._id?.$oid || task._id || `task-fallback-key-${index}`;
 
               return (
+               <Link key={taskKey} href={`/tasks/${task._id}`}>
                 <div
-                  key={taskKey}
+                  
                   className="bg-white border border-black/10 p-6 shadow-sm hover:border-black/30 transition-colors duration-200 flex flex-col justify-between"
                 >
                   <div>
@@ -279,7 +281,7 @@ function BrowseTasksContent() {
                       <div className="w-6 h-6 bg-black text-white flex items-center justify-center font-black text-[10px]">
                         {letterCode}
                       </div>
-                      <span className="text-xs font-black tracking-tight text-black truncate max-w-[180px]">
+                      <span className="text-xs font-black tracking-tight text-black truncate max-w-45">
                         {task.client_email?.split("@")[0]}
                       </span>
                     </div>
@@ -287,7 +289,7 @@ function BrowseTasksContent() {
                       {task.category?.split(" ")[0] || "Task"}
                     </span>
                   </div>
-                </div>
+                </div> </Link>
               );
             })}
           </div>

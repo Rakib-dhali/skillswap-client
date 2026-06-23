@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 export default function ExpertNetwork() {
@@ -62,10 +63,11 @@ export default function ExpertNetwork() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {freelancers.map((freelancer) => {
             const firstLetter = freelancer.name ? freelancer.name.charAt(0).toUpperCase() : "?";
+            const freelancerId = freelancer._id?.$oid || freelancer._id || freelancer.id;
 
             return (
-              <div 
-                key={freelancer._id?.$oid || freelancer._id || freelancer.id} 
+              <Link key={freelancerId} href={`/freelancers/${freelancerId}`}>
+              <div  
                 className="bg-white border border-black/10 p-6 shadow-sm hover:border-black/30 transition-colors duration-200 flex flex-col justify-between relative group"
               >
                 {/* Upper Deck: Profile Meta & Rates */}
@@ -121,7 +123,7 @@ export default function ExpertNetwork() {
                   ))}
                 </div>
 
-              </div>
+              </div></Link>
             );
           })}
         </div>
