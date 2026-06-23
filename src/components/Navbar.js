@@ -39,13 +39,13 @@ const Navbar = () => {
         <div className="hidden md:block">
           <ul className="flex items-center gap-8 text-xs font-bold tracking-[0.15em] uppercase text-black/70">
             <li className="hover:text-black transition-colors duration-200 cursor-pointer">
-              Home
+              <Link href="/">Home</Link>
             </li>
             <li className="hover:text-black transition-colors duration-200 cursor-pointer">
-              Browse Tasks
+              <Link href="/tasks">Browse Tasks</Link>
             </li>
             <li className="hover:text-black transition-colors duration-200 cursor-pointer">
-              Browse Freelancers
+              <Link href="/freelancers">Browse Freelancers</Link>
             </li>
           </ul>
         </div>
