@@ -3,14 +3,19 @@
 import Link from "next/link";
 import Image from "next/image";
 import { authClient } from "@/lib/auth-client";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 const Navbar = () => {
 
   const router = useRouter();
+  const pathname = usePathname();
 
   const { data: session, isPending } = authClient.useSession();
   const isLoggedIn = session?.user;
+
+  if (pathname && pathname.startsWith("/dashboard")) {
+    return null;
+  }
 
   const signOut = async () => {
     const { data, error } = await authClient.signOut();
