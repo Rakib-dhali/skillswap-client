@@ -1,10 +1,12 @@
 "use client";
 
+import { authClient } from "@/lib/auth-client";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function DynamicTaskDetailsPage() {
   const { id } = useParams(); // Collects the [id] segment directly from the browser URL
+  const {data: session} = authClient.useSession()
   
   const [task, setTask] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -36,15 +38,21 @@ export default function DynamicTaskDetailsPage() {
     e.preventDefault();
     setSubmitLoading(true);
     setSuccessMsg("");
-
+// task_id, freelancer_email, proposed_budget, estimated_days, cover_note, status,submitted_at
     const formData = new FormData(e.currentTarget);
     const proposalPayload = {
-      taskId: id,
-      ...Object.fromEntries(formData.entries())
+      task_id: id,
+      freelancer_email: session?.user?.email,
+      freelancer_name: session?.user?.name,
+      proposed_budget: formData.get("budget"),
+      estimated_days: formData.get("days"),
+      cover_note: formData.get("coverNote"),
+      status: "pending",
+      submitted_at: new Date(),
     };
 
     try {
-      const res = await fetch("http://localhost:5000/api/proposals", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/proposals`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(proposalPayload),
@@ -156,7 +164,7 @@ export default function DynamicTaskDetailsPage() {
                     Your Bid (USD)
                   </label>
                   <input 
-                    name="bid"
+                    name="budget"
                     type="number" 
                     placeholder={task.budget || "1500"} 
                     className="w-full border border-black/20 px-3 py-2.5 text-xs text-black focus:outline-none focus:border-black rounded-none placeholder-black/20"
