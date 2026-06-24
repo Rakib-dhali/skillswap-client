@@ -13,7 +13,7 @@ export default function ClientDashboard() {
     totalTasks: 12,
     openBids: 3,
     inProgress: 5,
-    totalSpent: "$4,250"
+    totalSpent: "$4,250",
   };
 
   const recentActivity = [
@@ -23,7 +23,7 @@ export default function ClientDashboard() {
       freelancer: "Alex Rivera",
       budget: "$1,500",
       status: "In Progress",
-      date: "2 hours ago"
+      date: "2 hours ago",
     },
     {
       id: "2",
@@ -31,7 +31,7 @@ export default function ClientDashboard() {
       freelancer: "Sofia Chen",
       budget: "$2,200",
       status: "In Progress",
-      date: "1 day ago"
+      date: "1 day ago",
     },
     {
       id: "3",
@@ -39,13 +39,12 @@ export default function ClientDashboard() {
       freelancer: "Marcus Vance",
       budget: "$550",
       status: "Completed",
-      date: "3 days ago"
-    }
+      date: "3 days ago",
+    },
   ];
 
   return (
     <div className="space-y-10 select-none">
-      
       {/* Header Deck */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 border-b border-black/10 pb-8">
         <div>
@@ -57,7 +56,7 @@ export default function ClientDashboard() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <button 
+          <button
             onClick={() => alert("Report generation started...")}
             className="bg-white hover:bg-black/5 text-black border border-black px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest transition-colors duration-200 rounded-none cursor-pointer"
           >
@@ -73,12 +72,15 @@ export default function ClientDashboard() {
 
       {/* Metrics Brutalist Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        
         {/* Total Tasks Card */}
         <div className="bg-white border border-black/10 p-6 shadow-sm flex flex-col justify-between min-h-36 rounded-none">
           <div>
-            <span className="text-[9px] font-bold tracking-widest text-black/40 uppercase block mb-1">Total Tasks</span>
-            <span className="text-xs font-bold tracking-tight text-black/60 block">active / total tasks</span>
+            <span className="text-[9px] font-bold tracking-widest text-black/40 uppercase block mb-1">
+              Total Tasks
+            </span>
+            <span className="text-xs font-bold tracking-tight text-black/60 block">
+              active / total tasks
+            </span>
           </div>
           <span className="text-4xl font-black text-black tracking-tighter leading-none mt-4">
             {stats.totalTasks}
@@ -88,8 +90,12 @@ export default function ClientDashboard() {
         {/* Open Bids Card */}
         <div className="bg-white border border-black/10 p-6 shadow-sm flex flex-col justify-between min-h-36 rounded-none">
           <div>
-            <span className="text-[9px] font-bold tracking-widest text-black/40 uppercase block mb-1">Open Bids</span>
-            <span className="text-xs font-bold tracking-tight text-black/60 block">active responses</span>
+            <span className="text-[9px] font-bold tracking-widest text-black/40 uppercase block mb-1">
+              Open Bids
+            </span>
+            <span className="text-xs font-bold tracking-tight text-black/60 block">
+              active responses
+            </span>
           </div>
           <span className="text-4xl font-black text-black tracking-tighter leading-none mt-4">
             {stats.openBids}
@@ -99,8 +105,12 @@ export default function ClientDashboard() {
         {/* In Progress Card */}
         <div className="bg-white border border-black/10 p-6 shadow-sm flex flex-col justify-between min-h-36 rounded-none">
           <div>
-            <span className="text-[9px] font-bold tracking-widest text-black/40 uppercase block mb-1">In Progress</span>
-            <span className="text-xs font-bold tracking-tight text-black/60 block">active tasks</span>
+            <span className="text-[9px] font-bold tracking-widest text-black/40 uppercase block mb-1">
+              In Progress
+            </span>
+            <span className="text-xs font-bold tracking-tight text-black/60 block">
+              active tasks
+            </span>
           </div>
           <span className="text-4xl font-black text-black tracking-tighter leading-none mt-4">
             {stats.inProgress}
@@ -110,14 +120,17 @@ export default function ClientDashboard() {
         {/* Black Card: Total Spent */}
         <div className="bg-black text-white p-6 shadow-sm flex flex-col justify-between min-h-36 rounded-none">
           <div>
-            <span className="text-[9px] font-bold tracking-widest text-white/50 uppercase block mb-1">Total Spent</span>
-            <span className="text-xs font-bold tracking-tight text-white/60 block">lifetime payment volume</span>
+            <span className="text-[9px] font-bold tracking-widest text-white/50 uppercase block mb-1">
+              Total Spent
+            </span>
+            <span className="text-xs font-bold tracking-tight text-white/60 block">
+              lifetime payment volume
+            </span>
           </div>
           <span className="text-3xl font-black text-white tracking-tighter leading-none mt-4">
             {stats.totalSpent}
           </span>
         </div>
-
       </div>
 
       {/* Recent Activity Table Card */}
@@ -130,7 +143,7 @@ export default function ClientDashboard() {
             View All
           </span>
         </div>
-        
+
         {/* Responsive Table wrapper */}
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
@@ -145,7 +158,10 @@ export default function ClientDashboard() {
             </thead>
             <tbody className="divide-y divide-black/5 text-xs">
               {recentActivity.map((activity) => (
-                <tr key={activity.id} className="hover:bg-black/[0.01] transition-colors">
+                <tr
+                  key={activity.id}
+                  className="hover:bg-black/[0.01] transition-colors"
+                >
                   <td className="py-4 pr-4 font-bold text-black uppercase tracking-tight max-w-xs truncate">
                     {activity.title}
                   </td>
@@ -156,11 +172,13 @@ export default function ClientDashboard() {
                     {activity.budget}
                   </td>
                   <td className="py-4 px-4 text-right">
-                    <span className={`inline-block px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${
-                      activity.status === "Completed" 
-                        ? "bg-green-50 text-green-700 border border-green-200" 
-                        : "bg-blue-50 text-blue-700 border border-blue-200"
-                    }`}>
+                    <span
+                      className={`inline-block px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${
+                        activity.status === "Completed"
+                          ? "bg-green-50 text-green-700 border border-green-200"
+                          : "bg-blue-50 text-blue-700 border border-blue-200"
+                      }`}
+                    >
                       {activity.status}
                     </span>
                   </td>
@@ -173,7 +191,6 @@ export default function ClientDashboard() {
           </table>
         </div>
       </div>
-
     </div>
   );
 }

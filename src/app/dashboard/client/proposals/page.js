@@ -18,7 +18,7 @@ export default function ClientProposalsPage() {
     const fetchProposals = async () => {
       try {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_SERVER_URL}/api/proposals/client/${encodeURIComponent(user.email)}`
+          `${process.env.NEXT_PUBLIC_SERVER_URL}/api/proposals/client/${encodeURIComponent(user.email)}`,
         );
         if (!res.ok) throw new Error("Failed to load proposals.");
         const data = await res.json();
@@ -33,7 +33,42 @@ export default function ClientProposalsPage() {
     fetchProposals();
   }, [user?.email]);
 
-  // Handle accept / reject
+ // Intercept the accept click and pass payload through your unchanged Stripe API route
+  const handleAcceptWithPayment = async (e, proposal) => {
+    e.preventDefault();
+    setUpdatingId(proposal._id);
+
+    try {
+      // 1. Build a native HTML FormData instance matching what your backend extracts
+      const formData = new FormData();
+      
+      // 2. Map your proposal object properties to match your route.js form fields exactly
+      formData.append("price", proposal.proposed_budget); // read as price in route.js
+      formData.append("title", proposal.task_title);       // read as title in route.js
+      formData.append("taskId", proposal._id);            // read as taskId in route.js
+
+      // 3. Dispatch the form payload to your existing route handler
+      const response = await fetch("/api/payment", {
+        method: "POST",
+        body: formData, // Sends as multipart/form-data naturally
+      });
+
+      // fetch will receive the JSON response containing the Stripe Checkout URL.
+      const data = await response.json();
+      
+      if (response.ok && data.url) {
+        // Use .assign() instead of a direct '=' assignment to bypass the compiler mutation error
+        window.location.assign(data.url);
+      } else {
+        throw new Error(data.error || "Failed to initialize Stripe billing gate.");
+      }
+    } catch (err) {
+      alert(`Payment Processing Failed: ${err.message}`);
+      setUpdatingId(null);
+    }
+  };
+
+  // Standard reject updates remain direct REST calls
   const handleStatusUpdate = async (proposalId, newStatus) => {
     setUpdatingId(proposalId);
     try {
@@ -43,16 +78,15 @@ export default function ClientProposalsPage() {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ status: newStatus }),
-        }
+        },
       );
 
       if (!res.ok) throw new Error("Failed to update status.");
 
-      // Optimistic update
       setProposals((prev) =>
         prev.map((p) =>
-          p._id === proposalId ? { ...p, status: newStatus } : p
-        )
+          p._id === proposalId ? { ...p, status: newStatus } : p,
+        ),
       );
     } catch (err) {
       alert(err.message);
@@ -64,7 +98,9 @@ export default function ClientProposalsPage() {
   // Compute stats
   const stats = {
     total: proposals.length,
-    pending: proposals.filter((p) => p.status === "pending" || p.status === "open").length,
+    pending: proposals.filter(
+      (p) => p.status === "pending" || p.status === "open",
+    ).length,
     accepted: proposals.filter((p) => p.status === "accepted").length,
     rejected: proposals.filter((p) => p.status === "rejected").length,
   };
@@ -92,34 +128,21 @@ export default function ClientProposalsPage() {
     if (diffH < 24) return `${diffH}h ago`;
     const diffD = Math.floor(diffH / 24);
     if (diffD < 7) return `${diffD}d ago`;
-    return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    return d.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
   };
 
   if (loading) {
     return (
-      <div className="space-y-10 select-none">
-        <div className="border-b border-black/10 pb-8">
-          <div className="h-10 w-80 bg-black/5 animate-pulse mb-3"></div>
-          <div className="h-4 w-56 bg-black/5 animate-pulse"></div>
-        </div>
+      <div className="space-y-10 select-none p-6 max-w-7xl mx-auto">
+        <div className="h-10 w-80 bg-black/5 animate-pulse mb-3" />
+        <div className="h-4 w-56 bg-black/5 animate-pulse mb-8" />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="bg-white border border-black/10 p-6 min-h-28 animate-pulse rounded-none">
-              <div className="h-3 w-20 bg-black/5 mb-4"></div>
-              <div className="h-8 w-14 bg-black/5"></div>
-            </div>
-          ))}
-        </div>
-        <div className="bg-white border border-black/10 p-8 rounded-none">
-          <div className="h-4 w-48 bg-black/5 mb-8 animate-pulse"></div>
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="flex gap-6 mb-4 animate-pulse">
-              <div className="h-4 w-48 bg-black/5"></div>
-              <div className="h-4 w-28 bg-black/5"></div>
-              <div className="h-4 w-20 bg-black/5"></div>
-              <div className="h-4 w-16 bg-black/5"></div>
-              <div className="h-4 w-24 bg-black/5"></div>
-            </div>
+            <div key={i} className="bg-white border border-black/10 p-6 min-h-28 animate-pulse" />
           ))}
         </div>
       </div>
@@ -135,8 +158,7 @@ export default function ClientProposalsPage() {
   }
 
   return (
-    <div className="space-y-10 select-none">
-
+    <div className="space-y-10 select-none max-w-7xl mx-auto p-6">
       {/* Header Deck */}
       <div className="border-b border-black/10 pb-8">
         <h1 className="text-3xl md:text-4xl font-black tracking-tighter uppercase text-black">
@@ -149,47 +171,34 @@ export default function ClientProposalsPage() {
 
       {/* Summary Stats Row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white border border-black/10 p-6 shadow-sm flex flex-col justify-between min-h-28 rounded-none">
-          <span className="text-[9px] font-bold tracking-widest text-black/40 uppercase block mb-1">Total Received</span>
-          <span className="text-3xl font-black text-black tracking-tighter leading-none mt-2">{stats.total}</span>
+        <div className="bg-white border border-black/10 p-6 flex flex-col justify-between min-h-28">
+          <span className="text-[9px] font-bold tracking-widest text-black/40 uppercase">Total Received</span>
+          <span className="text-3xl font-black text-black tracking-tighter mt-2">{stats.total}</span>
         </div>
-        <div className="bg-white border border-black/10 p-6 shadow-sm flex flex-col justify-between min-h-28 rounded-none">
-          <span className="text-[9px] font-bold tracking-widest text-black/40 uppercase block mb-1">Pending Review</span>
-          <span className="text-3xl font-black text-amber-600 tracking-tighter leading-none mt-2">{stats.pending}</span>
+        <div className="bg-white border border-black/10 p-6 flex flex-col justify-between min-h-28">
+          <span className="text-[9px] font-bold tracking-widest text-black/40 uppercase">Pending Review</span>
+          <span className="text-3xl font-black text-amber-600 tracking-tighter mt-2">{stats.pending}</span>
         </div>
-        <div className="bg-white border border-black/10 p-6 shadow-sm flex flex-col justify-between min-h-28 rounded-none">
-          <span className="text-[9px] font-bold tracking-widest text-black/40 uppercase block mb-1">Accepted</span>
-          <span className="text-3xl font-black text-emerald-600 tracking-tighter leading-none mt-2">{stats.accepted}</span>
+        <div className="bg-white border border-black/10 p-6 flex flex-col justify-between min-h-28">
+          <span className="text-[9px] font-bold tracking-widest text-black/40 uppercase">Accepted</span>
+          <span className="text-3xl font-black text-emerald-600 tracking-tighter mt-2">{stats.accepted}</span>
         </div>
-        <div className="bg-black text-white p-6 shadow-sm flex flex-col justify-between min-h-28 rounded-none">
-          <span className="text-[9px] font-bold tracking-widest text-white/50 uppercase block mb-1">Rejected</span>
-          <span className="text-3xl font-black text-white tracking-tighter leading-none mt-2">{stats.rejected}</span>
+        <div className="bg-black text-white p-6 flex flex-col justify-between min-h-28">
+          <span className="text-[9px] font-bold tracking-widest text-white/50 uppercase">Rejected</span>
+          <span className="text-3xl font-black text-white tracking-tighter mt-2">{stats.rejected}</span>
         </div>
       </div>
 
       {/* Proposals Table Card */}
-      <div className="bg-white border border-black/10 p-8 shadow-sm rounded-none">
+      <div className="bg-white border border-black/10 p-8 shadow-sm">
         <div className="flex items-center justify-between border-b border-black/10 pb-4 mb-6">
-          <h2 className="text-sm font-black tracking-widest text-black uppercase">
-            All Received Bids
-          </h2>
-          <span className="text-[9px] font-bold tracking-widest text-black/40 uppercase">
-            {stats.total} Total
-          </span>
+          <h2 className="text-sm font-black tracking-widest text-black uppercase">All Received Bids</h2>
+          <span className="text-[9px] font-bold tracking-widest text-black/40 uppercase">{stats.total} Total</span>
         </div>
 
         {proposals.length === 0 ? (
-          /* Empty State */
-          <div className="bg-[#EAEAEA] border border-black/5 p-12 text-center flex flex-col items-center justify-center min-h-60 rounded-none">
-            <div className="w-10 h-10 bg-white border border-black/10 flex items-center justify-center text-lg mb-4 shadow-sm">
-              📩
-            </div>
-            <span className="text-[10px] font-bold tracking-[0.2em] text-black uppercase block mb-1">
-              No Proposals Received
-            </span>
-            <span className="text-[9px] font-bold tracking-wider text-black/40 uppercase block max-w-sm leading-relaxed">
-              Post tasks to start receiving bids from freelancers in the marketplace.
-            </span>
+          <div className="bg-[#EAEAEA] border border-black/5 p-12 text-center flex flex-col items-center justify-center min-h-60">
+            <span className="text-[10px] font-bold tracking-[0.2em] text-black uppercase block mb-1">No Proposals Received</span>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -211,55 +220,42 @@ export default function ClientProposalsPage() {
                   const isUpdating = updatingId === p._id;
 
                   return (
-                    <tr key={p._id} className="hover:bg-black/[0.02] transition-colors duration-150">
-                      <td className="py-4 pr-4 font-bold text-black tracking-tight max-w-xs">
-                        <span className="block truncate uppercase">{p.task_title}</span>
-                        <span className="block text-[9px] text-black/40 font-medium uppercase tracking-wider mt-0.5">
-                          {p.task_category || "—"}
-                        </span>
+                    <tr key={p._id} className="hover:bg-black/2 transition-colors duration-150">
+                      <td className="py-4 pr-4 font-bold text-black uppercase tracking-tight max-w-xs truncate">
+                        {p.task_title}
                       </td>
                       <td className="py-4 px-4">
-                        <span className="block font-bold text-black tracking-tight">{p.freelancer_name || "Anonymous"}</span>
-                        <span className="block text-[9px] text-black/40 font-medium mt-0.5 truncate max-w-[160px]">
-                          {p.freelancer_email}
-                        </span>
+                        <span className="block font-bold text-black">{p.freelancer_name || "Anonymous"}</span>
+                        <span className="block text-[9px] text-black/40 mt-0.5">{p.freelancer_email}</span>
                       </td>
-                      <td className="py-4 px-4 font-black text-black text-right">
-                        ${p.proposed_budget}
-                      </td>
-                      <td className="py-4 px-4 text-black/70 text-center font-bold">
-                        {p.estimated_days}
-                      </td>
+                      <td className="py-4 px-4 font-black text-black text-right">${p.proposed_budget}</td>
+                      <td className="py-4 px-4 text-black/70 text-center font-bold">{p.estimated_days}</td>
                       <td className="py-4 px-4 text-right">
                         <span className={`inline-block px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider border ${getStatusStyle(p.status)}`}>
                           {p.status}
                         </span>
                       </td>
-                      <td className="py-4 px-4 text-black/40 text-right font-medium whitespace-nowrap">
-                        {formatDate(p.submitted_at)}
-                      </td>
+                      <td className="py-4 px-4 text-black/40 text-right whitespace-nowrap">{formatDate(p.submitted_at)}</td>
                       <td className="py-4 pl-4 text-center">
                         {isPending ? (
                           <div className="flex items-center justify-center gap-2">
                             <button
-                              onClick={() => handleStatusUpdate(p._id, "accepted")}
+                              onClick={(e) => handleAcceptWithPayment(e, p)}
                               disabled={isUpdating}
-                              className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 text-[9px] font-bold uppercase tracking-wider transition-colors duration-200 rounded-none cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed border border-emerald-700"
+                              className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 text-[9px] font-bold uppercase tracking-wider transition-colors disabled:opacity-40 border border-emerald-700 cursor-pointer"
                             >
-                              {isUpdating ? "..." : "Accept"}
+                              {isUpdating ? "Processing..." : "Accept & Pay"}
                             </button>
                             <button
                               onClick={() => handleStatusUpdate(p._id, "rejected")}
                               disabled={isUpdating}
-                              className="bg-white hover:bg-red-50 text-red-600 px-3 py-1.5 text-[9px] font-bold uppercase tracking-wider transition-colors duration-200 rounded-none cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed border border-red-300"
+                              className="bg-white hover:bg-red-50 text-red-600 px-3 py-1.5 text-[9px] font-bold uppercase tracking-wider transition-colors disabled:opacity-40 border border-red-300 cursor-pointer"
                             >
-                              {isUpdating ? "..." : "Reject"}
+                              Reject
                             </button>
                           </div>
                         ) : (
-                          <span className="text-[9px] font-bold tracking-wider text-black/30 uppercase">
-                            Resolved
-                          </span>
+                          <span className="text-[9px] font-bold tracking-wider text-black/30 uppercase">Resolved</span>
                         )}
                       </td>
                     </tr>
@@ -270,53 +266,6 @@ export default function ClientProposalsPage() {
           </div>
         )}
       </div>
-
-      {/* Cover Note Expandable Cards (for pending proposals) */}
-      {proposals.filter((p) => p.status === "pending" || p.status === "open").length > 0 && (
-        <div className="bg-white border border-black/10 p-8 shadow-sm rounded-none">
-          <h2 className="text-sm font-black tracking-widest text-black uppercase border-b border-black/10 pb-4 mb-6">
-            Pending Cover Notes
-          </h2>
-          <div className="space-y-4">
-            {proposals
-              .filter((p) => p.status === "pending" || p.status === "open")
-              .map((p) => (
-                <div key={p._id + "-note"} className="border border-black/10 p-5">
-                  <div className="flex items-center justify-between mb-3">
-                    <div>
-                      <span className="text-xs font-black text-black uppercase tracking-tight block">
-                        {p.freelancer_name || "Anonymous"}
-                      </span>
-                      <span className="text-[9px] font-bold tracking-wider text-black/40 uppercase">
-                        on {p.task_title}  •  ${p.proposed_budget} bid  •  {p.estimated_days} days
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => handleStatusUpdate(p._id, "accepted")}
-                        disabled={updatingId === p._id}
-                        className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 text-[9px] font-bold uppercase tracking-wider transition-colors rounded-none cursor-pointer disabled:opacity-40 border border-emerald-700"
-                      >
-                        Accept
-                      </button>
-                      <button
-                        onClick={() => handleStatusUpdate(p._id, "rejected")}
-                        disabled={updatingId === p._id}
-                        className="bg-white hover:bg-red-50 text-red-600 px-3 py-1.5 text-[9px] font-bold uppercase tracking-wider transition-colors rounded-none cursor-pointer disabled:opacity-40 border border-red-300"
-                      >
-                        Reject
-                      </button>
-                    </div>
-                  </div>
-                  <p className="text-xs text-black/70 leading-relaxed tracking-tight whitespace-pre-wrap">
-                    {p.cover_note || "No cover note provided."}
-                  </p>
-                </div>
-              ))}
-          </div>
-        </div>
-      )}
-
     </div>
   );
 }

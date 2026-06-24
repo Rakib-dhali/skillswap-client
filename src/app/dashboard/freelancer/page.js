@@ -12,12 +12,11 @@ export default function FreelancerDashboard() {
     totalProposals: 28,
     activeProposals: 12,
     acceptedProposals: 6,
-    totalEarnings: "$8.4k"
+    totalEarnings: "$8.4k",
   };
 
   return (
     <div className="space-y-10 select-none">
-      
       {/* Header Deck */}
       <div className="border-b border-black/10 pb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -35,12 +34,15 @@ export default function FreelancerDashboard() {
 
       {/* Metrics Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        
         {/* Total Proposals */}
         <div className="bg-white border border-black/10 p-6 shadow-sm flex flex-col justify-between min-h-36 rounded-none">
           <div>
-            <span className="text-[9px] font-bold tracking-widest text-black/40 uppercase block mb-1">Total Proposals</span>
-            <span className="text-[10px] font-bold tracking-tight text-black/60 block">submitted application bids</span>
+            <span className="text-[9px] font-bold tracking-widest text-black/40 uppercase block mb-1">
+              Total Proposals
+            </span>
+            <span className="text-[10px] font-bold tracking-tight text-black/60 block">
+              submitted application bids
+            </span>
           </div>
           <span className="text-4xl font-black text-black tracking-tighter leading-none mt-4">
             {stats.totalProposals}
@@ -50,8 +52,12 @@ export default function FreelancerDashboard() {
         {/* Active Proposals */}
         <div className="bg-white border border-black/10 p-6 shadow-sm flex flex-col justify-between min-h-36 rounded-none">
           <div>
-            <span className="text-[9px] font-bold tracking-widest text-black/40 uppercase block mb-1">Active Proposals</span>
-            <span className="text-[10px] font-bold tracking-tight text-black/60 block">pending client review</span>
+            <span className="text-[9px] font-bold tracking-widest text-black/40 uppercase block mb-1">
+              Active Proposals
+            </span>
+            <span className="text-[10px] font-bold tracking-tight text-black/60 block">
+              pending client review
+            </span>
           </div>
           <span className="text-4xl font-black text-black tracking-tighter leading-none mt-4">
             {stats.activeProposals}
@@ -61,8 +67,12 @@ export default function FreelancerDashboard() {
         {/* Accepted Proposals */}
         <div className="bg-white border border-black/10 p-6 shadow-sm flex flex-col justify-between min-h-36 rounded-none">
           <div>
-            <span className="text-[9px] font-bold tracking-widest text-black/40 uppercase block mb-1">Accepted Proposals</span>
-            <span className="text-[10px] font-bold tracking-tight text-black/60 block">hired & active projects</span>
+            <span className="text-[9px] font-bold tracking-widest text-black/40 uppercase block mb-1">
+              Accepted Proposals
+            </span>
+            <span className="text-[10px] font-bold tracking-tight text-black/60 block">
+              hired & active projects
+            </span>
           </div>
           <span className="text-4xl font-black text-black tracking-tighter leading-none mt-4">
             {stats.acceptedProposals}
@@ -72,14 +82,17 @@ export default function FreelancerDashboard() {
         {/* Total Earnings */}
         <div className="bg-black text-white p-6 shadow-sm flex flex-col justify-between min-h-36 rounded-none">
           <div>
-            <span className="text-[9px] font-bold tracking-widest text-white/50 uppercase block mb-1">Total Earnings</span>
-            <span className="text-[10px] font-bold tracking-tight text-white/60 block">withdrawn / lifetime volume</span>
+            <span className="text-[9px] font-bold tracking-widest text-white/50 uppercase block mb-1">
+              Total Earnings
+            </span>
+            <span className="text-[10px] font-bold tracking-tight text-white/60 block">
+              withdrawn / lifetime volume
+            </span>
           </div>
           <span className="text-3xl font-black text-white tracking-tighter leading-none mt-4">
             {stats.totalEarnings}
           </span>
         </div>
-
       </div>
 
       {/* Recent Activity Blueprint Canvas */}
@@ -87,7 +100,7 @@ export default function FreelancerDashboard() {
         <h2 className="text-sm font-black tracking-widest text-black uppercase border-b border-black/10 pb-4 mb-6">
           Recent Activity Blueprint
         </h2>
-        
+
         {/* Gray Blueprint box mimicking screenshot */}
         <div className="bg-[#EAEAEA] border border-black/5 p-12 text-center flex flex-col items-center justify-center min-h-80 rounded-none select-none">
           <div className="w-10 h-10 bg-white border border-black/10 flex items-center justify-center text-lg mb-4 shadow-sm">
@@ -97,11 +110,11 @@ export default function FreelancerDashboard() {
             Activity Matrix Monitor
           </span>
           <span className="text-[9px] font-bold tracking-wider text-black/40 uppercase block max-w-sm leading-relaxed">
-            Visualizing active proposals, project milestones, and running payment nodes.
+            Visualizing active proposals, project milestones, and running
+            payment nodes.
           </span>
         </div>
       </div>
-
     </div>
   );
 }
