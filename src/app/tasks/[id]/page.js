@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function DynamicTaskDetailsPage() {
-  const { id } = useParams(); // Collects the [id] segment directly from the browser URL
+  const { id } = useParams(); 
   const {data: session} = authClient.useSession()
   
   const [task, setTask] = useState(null);

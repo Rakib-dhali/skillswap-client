@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { authClient } from "@/lib/auth-client";
+import { uploadImage } from "@/lib/imageUpload";
 
 export default function FreelancerProfilePage() {
   const { data: session } = authClient.useSession();
@@ -11,6 +12,7 @@ export default function FreelancerProfilePage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   const [profile, setProfile] = useState({
     name: "",
@@ -66,6 +68,29 @@ export default function FreelancerProfilePage() {
     }));
   };
 
+  // Intercept file picker action and pipe file payload through the Imgbb handler module
+  const handleImageFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingImage(true);
+    setSuccess("");
+    setError("");
+
+    try {
+      const secureUrl = await uploadImage(file);
+      setProfile((prev) => ({
+        ...prev,
+        image: secureUrl,
+      }));
+      setSuccess("IMAGE UPLOADED SUCCESSFULLY to CDN.");
+    } catch (err) {
+      setError(err.message || "Failed to process target image asset file.");
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
@@ -99,9 +124,6 @@ export default function FreelancerProfilePage() {
       if (!res.ok) throw new Error("Failed to update profile.");
       
       setSuccess("Profile updated successfully!");
-      
-      // Update session info if client-side cached
-      // (Note: Better Auth session can be refreshed or re-fetched if name/image changed)
     } catch (err) {
       setError(err.message);
     } finally {
@@ -175,18 +197,42 @@ export default function FreelancerProfilePage() {
             />
           </div>
 
-          {/* Photo URL */}
+          {/* Photo File System / URL Input Group */}
           <div className="flex flex-col gap-1.5">
             <label className="text-[10px] font-bold tracking-widest text-black/60 uppercase">
-              Photo URL
+              Profile Photo ({uploadingImage ? "Uploading Asset..." : "Direct File Upload or URL"})
             </label>
+            <div className="flex flex-col sm:flex-row items-stretch gap-3">
+              {profile.image && (
+                <div className="w-12 h-12 border border-black/10 bg-white shrink-0 p-0.5">
+                  <img 
+                    src={profile.image} 
+                    alt="Uploaded Avatar" 
+                    className="w-full h-full object-cover grayscale"
+                  />
+                </div>
+              )}
+              <div className="flex-1 relative flex flex-col justify-center border border-dashed border-black/20 px-4 py-3 bg-black/[0.01] hover:bg-black/[0.03] transition-colors">
+                <input
+                  type="file"
+                  accept="image/*"
+                  disabled={uploadingImage}
+                  onChange={handleImageFileChange}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
+                />
+                <span className="text-[10px] font-bold tracking-wide text-black/40 uppercase block text-center sm:text-left">
+                  {uploadingImage ? "⚡ Transmitting image bytes..." : "Click or drag to overwrite avatar file"}
+                </span>
+              </div>
+            </div>
+            {/* Fallback Text URL Node mapping */}
             <input
               type="url"
               name="image"
               value={profile.image}
               onChange={handleChange}
-              placeholder="https://images.unsplash.com/photo-..."
-              className="w-full border border-black/20 px-4 py-3 text-xs text-black focus:outline-none focus:border-black rounded-none placeholder-black/20"
+              placeholder="Or explicitly paste direct image address here..."
+              className="w-full border border-black/20 px-4 py-3 text-xs text-black focus:outline-none focus:border-black rounded-none placeholder-black/20 mt-1"
             />
           </div>
 
@@ -240,7 +286,7 @@ export default function FreelancerProfilePage() {
           {/* Submit Button */}
           <button
             type="submit"
-            disabled={saving}
+            disabled={saving || uploadingImage}
             className="w-full bg-black hover:bg-black/90 text-white py-4 text-xs font-bold uppercase tracking-[0.2em] transition-colors border border-black cursor-pointer disabled:bg-black/40 disabled:cursor-not-allowed mt-4"
           >
             {saving ? "Saving Changes..." : "Save Profile Details"}

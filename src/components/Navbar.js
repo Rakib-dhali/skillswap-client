@@ -13,7 +13,7 @@ const Navbar = () => {
   const { data: session, isPending } = authClient.useSession();
   const isLoggedIn = session?.user;
 
-  if (pathname && pathname.startsWith("/dashboard")) {
+  if (pathname && (pathname.startsWith("/dashboard") || pathname.startsWith("/signin") || pathname.startsWith("/signup") || pathname.startsWith("/payment"))) {
     return null;
   }
 

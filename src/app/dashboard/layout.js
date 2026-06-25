@@ -6,6 +6,22 @@ import Link from "next/link";
 import Image from "next/image";
 import { authClient } from "@/lib/auth-client";
 
+// Import required React Icons
+import { 
+  LuLayoutDashboard, 
+  LuClipboardList, 
+  LuUsers, 
+  LuCreditCard, 
+  LuGlobe, 
+  LuBriefcase, 
+  LuSearch, 
+  LuInbox, 
+  LuRocket, 
+  LuDollarSign, 
+  LuUser,
+  LuFileText
+} from "react-icons/lu";
+
 export default function DashboardLayout({ children }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -47,34 +63,33 @@ export default function DashboardLayout({ children }) {
   const user = session.user;
   const role = user.role || "client";
 
-  // Define navigation items dynamically based on the user's role
+  // Define navigation items dynamically with functional React Icons components
   const getNavLinks = () => {
     switch (role) {
       case "admin":
         return [
-          { name: "Dashboard", href: "/dashboard/admin", icon: "📊" },
-          { name: "Tasks", href: "/dashboard/admin/tasks", icon: "📋" },
-          { name: "Users", href: "/dashboard/admin/users", icon: "👥" },
-          { name: "Transactions", href: "/dashboard/admin/transactions", icon: "💳" },
-          { name: "Platform Overview", href: "/dashboard/admin/overview", icon: "🌐" },
+          { name: "Dashboard", href: "/dashboard/admin", icon: <LuLayoutDashboard className="w-4 h-4" /> },
+          { name: "Tasks", href: "/dashboard/admin/tasks", icon: <LuClipboardList className="w-4 h-4" /> },
+          { name: "Users", href: "/dashboard/admin/users", icon: <LuUsers className="w-4 h-4" /> },
+          { name: "Transactions", href: "/dashboard/admin/transactions", icon: <LuCreditCard className="w-4 h-4" /> },
+          { name: "Platform Overview", href: "/dashboard/admin/overview", icon: <LuGlobe className="w-4 h-4" /> },
         ];
       case "freelancer":
         return [
-          { name: "Dashboard", href: "/dashboard/freelancer", icon: "💼" },
-          { name: "Browse Tasks", href: "/dashboard/freelancer/tasks", icon: "🔍" },
-          { name: "My Proposals", href: "/dashboard/freelancer/proposals", icon: "📥" },
-          { name: "Active Projects", href: "/dashboard/freelancer/active-projects", icon: "🚀" },
-          { name: "My Earnings", href: "/dashboard/freelancer/earnings", icon: "💰" },
-          { name: "Edit Profile", href: "/dashboard/freelancer/profile", icon: "👤" },
+          { name: "Dashboard", href: "/dashboard/freelancer", icon: <LuBriefcase className="w-4 h-4" /> },
+          { name: "Browse Tasks", href: "/dashboard/freelancer/tasks", icon: <LuSearch className="w-4 h-4" /> },
+          { name: "My Proposals", href: "/dashboard/freelancer/proposals", icon: <LuInbox className="w-4 h-4" /> },
+          { name: "Active Projects", href: "/dashboard/freelancer/active-projects", icon: <LuRocket className="w-4 h-4" /> },
+          { name: "My Earnings", href: "/dashboard/freelancer/earnings", icon: <LuDollarSign className="w-4 h-4" /> },
+          { name: "Edit Profile", href: "/dashboard/freelancer/profile", icon: <LuUser className="w-4 h-4" /> },
         ];
       case "client":
       default:
         return [
-          { name: "Dashboard", href: "/dashboard/client", icon: "📈" },
-          { name: "Tasks", href: "/dashboard/client/tasks", icon: "📝" },
-          { name: "Proposals", href: "/dashboard/client/proposals", icon: "📩" },
-          { name: "Financials", href: "/dashboard/client/financials", icon: "💵" },
-          { name: "Platform Overview", href: "/dashboard/client/overview", icon: "🎯" },
+          { name: "Dashboard", href: "/dashboard/client", icon: <LuLayoutDashboard className="w-4 h-4" /> },
+          { name: "Tasks", href: "/dashboard/client/tasks", icon: <LuFileText className="w-4 h-4" /> },
+          { name: "Proposals", href: "/dashboard/client/proposals", icon: <LuInbox className="w-4 h-4" /> },
+          { name: "Edit Profile", href: "/dashboard/freelancer/profile", icon: <LuUser className="w-4 h-4" /> },
         ];
     }
   };
@@ -103,7 +118,7 @@ export default function DashboardLayout({ children }) {
         </Link>
         <button 
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="w-8 h-8 flex flex-col items-center justify-center gap-1 border border-black/10 bg-white active:bg-black/5"
+          className="w-8 h-8 flex flex-col items-center justify-center gap-1 border border-black/10 bg-white active:bg-black/5 cursor-pointer"
         >
           <div className={`w-4 h-0.5 bg-black transition-all ${mobileMenuOpen ? "rotate-45 translate-y-1" : ""}`}></div>
           <div className={`w-4 h-0.5 bg-black transition-all ${mobileMenuOpen ? "opacity-0" : ""}`}></div>
@@ -146,7 +161,7 @@ export default function DashboardLayout({ children }) {
                         : "bg-transparent text-black/60 border-transparent hover:text-black hover:bg-black/5"
                     }`}
                   >
-                    <span className="text-sm">{link.icon}</span>
+                    <span className="flex items-center justify-center shrink-0">{link.icon}</span>
                     <span>{link.name}</span>
                   </div>
                 </Link>
