@@ -86,7 +86,6 @@ export default function DashboardLayout({ children }) {
           { name: "Tasks", href: "/dashboard/admin/tasks", icon: <LuClipboardList className="w-4 h-4" /> },
           { name: "Users", href: "/dashboard/admin/users", icon: <LuUsers className="w-4 h-4" /> },
           { name: "Transactions", href: "/dashboard/admin/transactions", icon: <LuCreditCard className="w-4 h-4" /> },
-          { name: "Platform Overview", href: "/dashboard/admin/overview", icon: <LuGlobe className="w-4 h-4" /> },
         ];
       case "freelancer":
         return [

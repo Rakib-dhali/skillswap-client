@@ -13,26 +13,53 @@ export default function AdminDashboard() {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL;
+  const [activities, setActivities] = useState([]);
+  const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:5000";
+
+  const formatRelativeTime = (dateString) => {
+    const date = new Date(dateString);
+    const diff = Date.now() - date.getTime();
+    const minutes = Math.round(diff / 60000);
+    if (minutes < 1) return "just now";
+    if (minutes < 60) return `${minutes} min ago`;
+    const hours = Math.round(minutes / 60);
+    if (hours < 24) return `${hours} hr ago`;
+    const days = Math.round(hours / 24);
+    return `${days} day${days === 1 ? "" : "s"} ago`;
+  };
 
   useEffect(() => {
     let active = true;
     const fetchOverview = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`${serverUrl}/api/admin/overview`);
-        if (!res.ok) throw new Error("Unable to load overview data.");
-        const data = await res.json();
+        const [overviewRes, activityRes] = await Promise.all([
+          fetch(`${serverUrl}/api/admin/overview`),
+          fetch(`${serverUrl}/api/admin/activity`),
+        ]);
+
+        if (!overviewRes.ok) throw new Error("Unable to load overview data.");
+        if (!activityRes.ok) throw new Error("Unable to load activity feed.");
+
+        const overviewData = await overviewRes.json();
+        const activityData = await activityRes.json();
+
         if (!active) return;
         setStats({
-          totalUsers: data.totalUsers?.toLocaleString() ?? "0",
-          totalTasks: data.totalTasks?.toLocaleString() ?? "0",
-          totalRevenue: `$${data.totalRevenue?.toLocaleString() ?? "0"}`,
-          activeTasks: data.activeTasks?.toLocaleString() ?? "0",
+          totalUsers: overviewData.totalUsers?.toLocaleString() ?? "0",
+          totalTasks: overviewData.totalTasks?.toLocaleString() ?? "0",
+          totalRevenue: `$${overviewData.totalRevenue?.toLocaleString() ?? "0"}`,
+          activeTasks: overviewData.activeTasks?.toLocaleString() ?? "0",
         });
+        setActivities(
+          activityData.map((activity) => ({
+            ...activity,
+            time: formatRelativeTime(activity.timestamp),
+          })),
+        );
       } catch (err) {
         if (!active) return;
-        setError(err.message || "Failed to load overview statistics.");
+        setError(err.message || "Failed to load admin dashboard data.");
       } finally {
         if (!active) return;
         setLoading(false);
@@ -44,27 +71,6 @@ export default function AdminDashboard() {
       active = false;
     };
   }, [serverUrl]);
-
-  const activities = [
-    {
-      id: "1",
-      title: "New Task Created: UI/Design for Fintech App",
-      detail: "Client: Sofia Chen — Amount: $1,200",
-      time: "12 min ago",
-    },
-    {
-      id: "2",
-      title: "Payment Processed: Milestone 1",
-      detail: "USD $450 — Task ID: next-auth-setup",
-      time: "44 min ago",
-    },
-    {
-      id: "3",
-      title: "New User Registration: Rohit",
-      detail: "Role: Freelancer — React Developer",
-      time: "2 hours ago",
-    },
-  ];
 
   if (error) {
     return (
@@ -122,7 +128,7 @@ export default function AdminDashboard() {
             <span className="text-[10px] font-bold tracking-tight text-black/60 block">processed billing volume</span>
           </div>
           <span className="text-3xl font-black text-black tracking-tighter leading-none mt-4">
-            {loading ? "..." : stats.activeTasks}
+            {loading ? "..." : stats.totalRevenue}
           </span>
         </div>
 
@@ -132,7 +138,7 @@ export default function AdminDashboard() {
             <span className="text-[10px] font-bold tracking-tight text-white/60 block">tasks currently live</span>
           </div>
           <span className="text-3xl font-black text-white tracking-tighter leading-none mt-4">
-            {loading ? "..." : stats.totalRevenue}
+            {loading ? "..." : stats.activeTasks}
           </span>
         </div>
       </div>
