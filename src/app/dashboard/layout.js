@@ -13,10 +13,24 @@ export default function DashboardLayout({ children }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    if (!isPending && !session?.user) {
-      router.push("/signin");
+    if (!isPending) {
+      if (!session?.user) {
+        router.push("/signin");
+      } else {
+        const userRole = session.user.role || "client";
+        
+        // Guard client routes
+        if (pathname.startsWith("/dashboard/client") && userRole !== "client" && userRole !== "admin") {
+          router.push(`/dashboard/${userRole}`);
+        }
+        
+        // Guard freelancer routes
+        if (pathname.startsWith("/dashboard/freelancer") && userRole !== "freelancer" && userRole !== "admin") {
+          router.push(`/dashboard/${userRole}`);
+        }
+      }
     }
-  }, [session, isPending, router]);
+  }, [session, isPending, router, pathname]);
 
   if (isPending) {
     return (
@@ -49,6 +63,7 @@ export default function DashboardLayout({ children }) {
           { name: "Dashboard", href: "/dashboard/freelancer", icon: "💼" },
           { name: "Browse Tasks", href: "/dashboard/freelancer/tasks", icon: "🔍" },
           { name: "My Proposals", href: "/dashboard/freelancer/proposals", icon: "📥" },
+          { name: "Active Projects", href: "/dashboard/freelancer/active-projects", icon: "🚀" },
           { name: "My Earnings", href: "/dashboard/freelancer/earnings", icon: "💰" },
           { name: "Edit Profile", href: "/dashboard/freelancer/profile", icon: "👤" },
         ];

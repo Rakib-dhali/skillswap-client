@@ -2,10 +2,12 @@
 
 import { authClient } from "@/lib/auth-client";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function ClientProposalsPage() {
   const { data: session } = authClient.useSession();
   const user = session?.user;
+  const router = useRouter();
 
   const [proposals, setProposals] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -33,39 +35,18 @@ export default function ClientProposalsPage() {
     fetchProposals();
   }, [user?.email]);
 
- // Intercept the accept click and pass payload through your unchanged Stripe API route
-  const handleAcceptWithPayment = async (e, proposal) => {
+  // Redirect to dummy Stripe checkout page
+  const handleAcceptWithPayment = (e, proposal) => {
     e.preventDefault();
-    setUpdatingId(proposal._id);
-
-    try {
-      // 1. Build a native HTML FormData instance matching what your backend extracts
-      const formData = new FormData();
-      
-      // 2. Map your proposal object properties to match your route.js form fields exactly
-      formData.append("price", proposal.proposed_budget); // read as price in route.js
-      formData.append("title", proposal.task_title);       // read as title in route.js
-      formData.append("taskId", proposal._id);            // read as taskId in route.js
-
-      // 3. Dispatch the form payload to your existing route handler
-      const response = await fetch("/api/payment", {
-        method: "POST",
-        body: formData, // Sends as multipart/form-data naturally
-      });
-
-      // fetch will receive the JSON response containing the Stripe Checkout URL.
-      const data = await response.json();
-      
-      if (response.ok && data.url) {
-        // Use .assign() instead of a direct '=' assignment to bypass the compiler mutation error
-        window.location.assign(data.url);
-      } else {
-        throw new Error(data.error || "Failed to initialize Stripe billing gate.");
-      }
-    } catch (err) {
-      alert(`Payment Processing Failed: ${err.message}`);
-      setUpdatingId(null);
-    }
+    const params = new URLSearchParams({
+      proposalId: proposal._id,
+      taskId: proposal.task_id,
+      freelancerEmail: proposal.freelancer_email,
+      amount: proposal.proposed_budget,
+      title: proposal.task_title,
+      clientEmail: user?.email || "",
+    });
+    router.push(`/payment/checkout?${params.toString()}`);
   };
 
   // Standard reject updates remain direct REST calls
@@ -104,6 +85,11 @@ export default function ClientProposalsPage() {
     accepted: proposals.filter((p) => p.status === "accepted").length,
     rejected: proposals.filter((p) => p.status === "rejected").length,
   };
+
+  // Check which task_ids already have an accepted proposal
+  const tasksWithAccepted = new Set(
+    proposals.filter((p) => p.status === "accepted").map((p) => p.task_id)
+  );
 
   const getStatusStyle = (status) => {
     switch (status) {
@@ -162,7 +148,7 @@ export default function ClientProposalsPage() {
       {/* Header Deck */}
       <div className="border-b border-black/10 pb-8">
         <h1 className="text-3xl md:text-4xl font-black tracking-tighter uppercase text-black">
-          Received Proposals
+          Manage Proposals
         </h1>
         <p className="text-xs font-bold tracking-widest text-black/40 uppercase mt-2">
           Bids Submitted to Your Tasks
@@ -209,6 +195,7 @@ export default function ClientProposalsPage() {
                   <th className="pb-3 px-4 font-black">Freelancer</th>
                   <th className="pb-3 px-4 font-black text-right">Bid</th>
                   <th className="pb-3 px-4 font-black text-center">Days</th>
+                  <th className="pb-3 px-4 font-black">Message</th>
                   <th className="pb-3 px-4 font-black text-right">Status</th>
                   <th className="pb-3 px-4 font-black text-right">Submitted</th>
                   <th className="pb-3 pl-4 font-black text-center">Actions</th>
@@ -218,9 +205,10 @@ export default function ClientProposalsPage() {
                 {proposals.map((p) => {
                   const isPending = p.status === "pending" || p.status === "open";
                   const isUpdating = updatingId === p._id;
+                  const taskAlreadyAccepted = tasksWithAccepted.has(p.task_id);
 
                   return (
-                    <tr key={p._id} className="hover:bg-black/2 transition-colors duration-150">
+                    <tr key={p._id} className="hover:bg-black/[0.02] transition-colors duration-150">
                       <td className="py-4 pr-4 font-bold text-black uppercase tracking-tight max-w-xs truncate">
                         {p.task_title}
                       </td>
@@ -230,6 +218,9 @@ export default function ClientProposalsPage() {
                       </td>
                       <td className="py-4 px-4 font-black text-black text-right">${p.proposed_budget}</td>
                       <td className="py-4 px-4 text-black/70 text-center font-bold">{p.estimated_days}</td>
+                      <td className="py-4 px-4 text-black/60 max-w-[200px]">
+                        <p className="truncate text-[10px]" title={p.cover_note}>{p.cover_note || "—"}</p>
+                      </td>
                       <td className="py-4 px-4 text-right">
                         <span className={`inline-block px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider border ${getStatusStyle(p.status)}`}>
                           {p.status}
@@ -237,14 +228,14 @@ export default function ClientProposalsPage() {
                       </td>
                       <td className="py-4 px-4 text-black/40 text-right whitespace-nowrap">{formatDate(p.submitted_at)}</td>
                       <td className="py-4 pl-4 text-center">
-                        {isPending ? (
+                        {isPending && !taskAlreadyAccepted ? (
                           <div className="flex items-center justify-center gap-2">
                             <button
                               onClick={(e) => handleAcceptWithPayment(e, p)}
                               disabled={isUpdating}
                               className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 text-[9px] font-bold uppercase tracking-wider transition-colors disabled:opacity-40 border border-emerald-700 cursor-pointer"
                             >
-                              {isUpdating ? "Processing..." : "Accept & Pay"}
+                              {isUpdating ? "Processing..." : "Accept"}
                             </button>
                             <button
                               onClick={() => handleStatusUpdate(p._id, "rejected")}
@@ -255,7 +246,9 @@ export default function ClientProposalsPage() {
                             </button>
                           </div>
                         ) : (
-                          <span className="text-[9px] font-bold tracking-wider text-black/30 uppercase">Resolved</span>
+                          <span className="text-[9px] font-bold tracking-wider text-black/30 uppercase">
+                            {taskAlreadyAccepted && isPending ? "Task Filled" : "Resolved"}
+                          </span>
                         )}
                       </td>
                     </tr>

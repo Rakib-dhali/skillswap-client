@@ -1,218 +1,266 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 import { authClient } from "@/lib/auth-client";
+import Link from "next/link";
 
-export default function PostTaskPage() {
-  const router = useRouter();
+export default function MyTasksPage() {
   const { data: session } = authClient.useSession();
-  const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState("");
+  const user = session?.user;
+
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [editingId, setEditingId] = useState(null);
+  const [editDescription, setEditDescription] = useState("");
+  const [updating, setUpdating] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  const categories = [
-    "Web Development",
-    "Design & Creative",
-    "Writing & Translation",
-    "Data Science",
-    "Cybersecurity",
-    "DevOps",
-    "Legal",
-    "Business & Finance",
-    "Marketing",
-  ];
+  const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:5000";
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setSuccess("");
-    setError("");
+  useEffect(() => {
+    if (!user?.email) return;
 
-    const formData = new FormData(e.currentTarget);
-    const payload = {
-      title: formData.get("title"),
-      category: formData.get("category"),
-      budget: parseFloat(formData.get("budget")),
-      description: formData.get("description"),
-      deadline: formData.get("deadline"),
-      client_email: session?.user?.email || "",
-      client_name: session?.user?.name || "",
+    let active = true;
+    const fetchTasks = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch(
+          `${serverUrl}/api/tasks/client/${encodeURIComponent(user.email)}`
+        );
+        if (!res.ok) throw new Error("Failed to load tasks.");
+        const data = await res.json();
+        if (active) setTasks(data);
+      } catch (err) {
+        if (active) setError(err.message);
+      } finally {
+        if (active) setLoading(false);
+      }
     };
 
+    fetchTasks();
+
+    return () => {
+      active = false;
+    };
+  }, [user?.email, refreshTrigger, serverUrl]);
+
+  const handleEdit = (task) => {
+    setEditingId(task._id);
+    setEditDescription(task.description);
+  };
+
+  const handleSaveEdit = async (taskId) => {
+    setUpdating(true);
     try {
-      const serverUrl =
-        process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:5000";
-      const res = await fetch(`${serverUrl}/api/tasks`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
+      const res = await fetch(`${serverUrl}/api/tasks/${taskId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ description: editDescription }),
       });
-
       if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.error || "Failed to create task.");
+        const data = await res.json();
+        throw new Error(data.error || "Failed to update task.");
       }
-
-      setSuccess("Task listed successfully in global registry.");
-      e.target.reset();
-
-      // Redirect to client overview after brief delay
-      setTimeout(() => {
-        router.push("/dashboard/client");
-      }, 1500);
+      setEditingId(null);
+      setRefreshTrigger((prev) => prev + 1);
     } catch (err) {
-      setError(err.message || "Something went wrong.");
+      alert(err.message);
     } finally {
-      setLoading(false);
+      setUpdating(false);
     }
   };
 
+  const handleDelete = async (taskId) => {
+    if (!confirm("Are you sure you want to delete this task?")) return;
+    try {
+      const res = await fetch(`${serverUrl}/api/tasks/${taskId}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to delete task.");
+      }
+      setRefreshTrigger((prev) => prev + 1);
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  const getStatusStyle = (status) => {
+    switch (status?.toLowerCase()) {
+      case "in progress":
+        return "bg-blue-50 text-blue-700 border-blue-200";
+      case "completed":
+        return "bg-emerald-50 text-emerald-700 border-emerald-200";
+      case "open":
+      default:
+        return "bg-amber-50 text-amber-700 border-amber-200";
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="space-y-10 select-none">
+        <div className="border-b border-black/10 pb-8">
+          <div className="h-10 w-72 bg-black/5 animate-pulse mb-3"></div>
+          <div className="h-4 w-56 bg-black/5 animate-pulse"></div>
+        </div>
+        <div className="bg-white border border-black/10 p-8 rounded-none">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="flex gap-6 mb-4 animate-pulse">
+              <div className="h-4 w-48 bg-black/5"></div>
+              <div className="h-4 w-20 bg-black/5"></div>
+              <div className="h-4 w-16 bg-black/5"></div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center text-xs font-bold tracking-widest text-red-600 uppercase select-none">
+        ⚠️ {error}
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-10 select-none">
-      {/* Header Deck */}
-      <div className="border-b border-black/10 pb-8">
-        <h1 className="text-3xl md:text-4xl font-black tracking-tighter uppercase text-black">
-          Post a Task
-        </h1>
-        <p className="text-xs font-bold tracking-widest text-black/40 uppercase mt-2">
-          Define your requirements to find the right talent quickly.
-        </p>
+      {/* Header */}
+      <div className="border-b border-black/10 pb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl md:text-4xl font-black tracking-tighter uppercase text-black">
+            My Tasks
+          </h1>
+          <p className="text-xs font-bold tracking-widest text-black/40 uppercase mt-2">
+            Manage Your Posted Tasks
+          </p>
+        </div>
+        <Link href="/dashboard/client/tasks/post">
+          <button className="bg-black hover:bg-black/90 text-white px-5 py-2.5 text-[10px] font-bold uppercase tracking-widest transition-colors duration-200 rounded-none cursor-pointer border border-black">
+            + Post New Task
+          </button>
+        </Link>
       </div>
 
-      {/* Grid Split */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 items-start">
-        {/* Left Side: Form */}
-        <div className="lg:col-span-2 bg-white border border-black/10 p-8 shadow-sm rounded-none">
-          {success && (
-            <div className="mb-6 p-4 bg-green-50 border border-green-250 text-green-755 text-xs font-bold uppercase tracking-wider">
-              ✓ {success}
-            </div>
-          )}
-
-          {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-600 text-xs font-bold uppercase tracking-wider">
-              ⚠️ {error}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Title */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-bold tracking-widest text-black/60 uppercase">
-                Task Title
-              </label>
-              <input
-                name="title"
-                type="text"
-                placeholder="e.g. Develop a React Frontend for E-commerce"
-                className="w-full border border-black/20 px-4 py-3 text-xs text-black focus:outline-none focus:border-black rounded-none placeholder-black/20"
-                required
-              />
-            </div>
-
-            {/* Category & Budget Row */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] font-bold tracking-widest text-black/60 uppercase">
-                  Category
-                </label>
-                <select
-                  name="category"
-                  className="w-full border border-black/20 bg-white px-4 py-3 text-xs text-black focus:outline-none focus:border-black rounded-none cursor-pointer"
-                  required
-                >
-                  <option value="">Select Category</option>
-                  {categories.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] font-bold tracking-widest text-black/60 uppercase">
-                  Budget (USD)
-                </label>
-                <input
-                  name="budget"
-                  type="number"
-                  placeholder="e.g. 1500"
-                  min="1"
-                  className="w-full border border-black/20 px-4 py-3 text-xs text-black focus:outline-none focus:border-black rounded-none placeholder-black/20"
-                  required
-                />
-              </div>
-            </div>
-
-            {/* Description */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-bold tracking-widest text-black/60 uppercase">
-                Description
-              </label>
-              <textarea
-                name="description"
-                rows={6}
-                placeholder="Provide a detailed description of the task, requirements, and deliverables..."
-                className="w-full border border-black/20 px-4 py-3 text-xs text-black focus:outline-none focus:border-black rounded-none resize-none placeholder-black/20"
-                required
-              />
-            </div>
-
-            {/* Deadline */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-bold tracking-widest text-black/60 uppercase">
-                Deadline
-              </label>
-              <input
-                name="deadline"
-                type="date"
-                className="w-full border border-black/20 px-4 py-3 text-xs text-black focus:outline-none focus:border-black rounded-none"
-                required
-              />
-            </div>
-
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="bg-black hover:bg-black/90 text-white px-8 py-3.5 text-xs font-bold uppercase tracking-[0.15em] transition-colors duration-200 rounded-none cursor-pointer border border-black disabled:bg-black/40 disabled:cursor-not-allowed"
-            >
-              {loading ? "Posting..." : "Post the Task"}
-            </button>
-          </form>
+      {/* Tasks Table */}
+      <div className="bg-white border border-black/10 p-8 shadow-sm rounded-none">
+        <div className="flex items-center justify-between border-b border-black/10 pb-4 mb-6">
+          <h2 className="text-sm font-black tracking-widest text-black uppercase">
+            All Tasks
+          </h2>
+          <span className="text-[9px] font-bold tracking-widest text-black/40 uppercase">
+            {tasks.length} Total
+          </span>
         </div>
 
-        {/* Right Side: Tips */}
-        <div className="space-y-6">
-          {/* Tip Card 1 */}
-          <div className="bg-white border border-black/10 p-6 shadow-sm rounded-none">
-            <h3 className="text-xs font-black tracking-widest text-black uppercase border-b border-black/10 pb-3 mb-4 flex items-center gap-2">
-              <span>💡</span> Tip: Tune standard metrics
-            </h3>
-            <ul className="text-[11px] text-black/60 space-y-3 list-disc list-inside leading-relaxed">
-              <li>Be specific about deliverables to avoid scope creep.</li>
-              <li>Set a realistic budget based on market rates.</li>
-              <li>Clearly define required skills or software.</li>
-            </ul>
+        {tasks.length === 0 ? (
+          <div className="bg-[#EAEAEA] border border-black/5 p-12 text-center flex flex-col items-center justify-center min-h-60 rounded-none">
+            <span className="text-[10px] font-bold tracking-[0.2em] text-black uppercase block mb-1">
+              No Tasks Posted Yet
+            </span>
+            <span className="text-[9px] font-bold tracking-wider text-black/40 uppercase block">
+              Start by posting your first task.
+            </span>
           </div>
-
-          {/* Tip Card 2 */}
-          <div className="bg-white border border-black/10 p-6 shadow-sm rounded-none">
-            <h3 className="text-xs font-black tracking-widest text-black uppercase border-b border-black/10 pb-3 mb-4 flex items-center gap-2">
-              <span>⚡</span> Tip: Maximize bids asset
-            </h3>
-            <p className="text-[11px] text-black/60 leading-relaxed">
-              Tasks with comprehensive descriptions receive{" "}
-              <strong className="text-black">80% more proposals</strong> from
-              top-rated talent within the first 24 hours.
-            </p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-black/10 text-[9px] font-bold tracking-widest text-black/40 uppercase">
+                  <th className="pb-3 pr-4 font-black">Task Title</th>
+                  <th className="pb-3 px-4 font-black">Category</th>
+                  <th className="pb-3 px-4 font-black text-right">Budget</th>
+                  <th className="pb-3 px-4 font-black text-right">Deadline</th>
+                  <th className="pb-3 px-4 font-black text-center">Status</th>
+                  <th className="pb-3 pl-4 font-black text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-black/5 text-xs">
+                {tasks.map((task) => {
+                  const isEditing = editingId === task._id;
+                  return (
+                    <tr key={task._id} className="hover:bg-black/[0.02] transition-colors duration-150">
+                      <td className="py-4 pr-4 font-bold text-black uppercase tracking-tight max-w-xs truncate">
+                        {task.title}
+                      </td>
+                      <td className="py-4 px-4 text-black/50 font-medium uppercase text-[10px] tracking-wider">
+                        {task.category}
+                      </td>
+                      <td className="py-4 px-4 font-black text-black text-right">
+                        ${task.budget}
+                      </td>
+                      <td className="py-4 px-4 text-black/50 text-right font-medium whitespace-nowrap">
+                        {task.deadline || "—"}
+                      </td>
+                      <td className="py-4 px-4 text-center">
+                        <span className={`inline-block px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider border ${getStatusStyle(task.status)}`}>
+                          {task.status}
+                        </span>
+                      </td>
+                      <td className="py-4 pl-4 text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          {task.status === "open" && (
+                            <button
+                              onClick={() => handleEdit(task)}
+                              className="bg-white hover:bg-blue-50 text-blue-600 px-3 py-1.5 text-[9px] font-bold uppercase tracking-wider transition-colors border border-blue-300 cursor-pointer"
+                            >
+                              Edit
+                            </button>
+                          )}
+                          {!task.hasAcceptedProposal && (
+                            <button
+                              onClick={() => handleDelete(task._id)}
+                              className="bg-white hover:bg-red-50 text-red-600 px-3 py-1.5 text-[9px] font-bold uppercase tracking-wider transition-colors border border-red-300 cursor-pointer"
+                            >
+                              Delete
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
-        </div>
+        )}
       </div>
+
+      {/* Edit Modal */}
+      {editingId && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+          <div className="bg-white border border-black/10 p-8 shadow-lg w-full max-w-lg rounded-none">
+            <h3 className="text-sm font-black tracking-widest text-black uppercase mb-6 border-b border-black/10 pb-4">
+              Edit Task Description
+            </h3>
+            <textarea
+              value={editDescription}
+              onChange={(e) => setEditDescription(e.target.value)}
+              rows={6}
+              className="w-full border border-black/20 px-4 py-3 text-xs text-black focus:outline-none focus:border-black rounded-none resize-none mb-6"
+            />
+            <div className="flex items-center justify-end gap-3">
+              <button
+                onClick={() => setEditingId(null)}
+                className="bg-white hover:bg-black/5 text-black px-5 py-2.5 text-[10px] font-bold uppercase tracking-widest transition-colors border border-black rounded-none cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleSaveEdit(editingId)}
+                disabled={updating}
+                className="bg-black hover:bg-black/90 text-white px-5 py-2.5 text-[10px] font-bold uppercase tracking-widest transition-colors border border-black rounded-none cursor-pointer disabled:opacity-40"
+              >
+                {updating ? "Saving..." : "Save Changes"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -7,13 +7,23 @@ export default function FreelancerDashboard() {
   const { data: session } = authClient.useSession();
   const user = session?.user;
 
-  // Exact values from the second panel of the mockup image
-  const stats = {
-    totalProposals: 28,
-    activeProposals: 12,
-    acceptedProposals: 6,
-    totalEarnings: "$8.4k",
-  };
+  const [stats, setStats] = useState({
+    totalProposals: 0,
+    pending: 0,
+    accepted: 0,
+    totalEarnings: 0,
+  });
+
+  useEffect(() => {
+    if (user?.email) {
+      fetch(
+        `${process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:5000"}/api/freelancer/stats/${encodeURIComponent(user.email)}`
+      )
+        .then((res) => res.json())
+        .then((data) => setStats(data))
+        .catch(console.error);
+    }
+  }, [user?.email]);
 
   return (
     <div className="space-y-10 select-none">
@@ -24,7 +34,7 @@ export default function FreelancerDashboard() {
             Freelancer Overview
           </h1>
           <p className="text-xs font-bold tracking-widest text-black/40 uppercase mt-2">
-            Active Workspace Operations
+            {user?.name ? `${user.name}'s Workspace` : "Active Workspace Operations"}
           </p>
         </div>
         <span className="text-[10px] font-bold tracking-widest bg-black text-white px-3 py-1.5 uppercase rounded-none self-start sm:self-auto">
@@ -49,18 +59,18 @@ export default function FreelancerDashboard() {
           </span>
         </div>
 
-        {/* Active Proposals */}
+        {/* Pending Proposals */}
         <div className="bg-white border border-black/10 p-6 shadow-sm flex flex-col justify-between min-h-36 rounded-none">
           <div>
             <span className="text-[9px] font-bold tracking-widest text-black/40 uppercase block mb-1">
-              Active Proposals
+              Pending Proposals
             </span>
             <span className="text-[10px] font-bold tracking-tight text-black/60 block">
               pending client review
             </span>
           </div>
           <span className="text-4xl font-black text-black tracking-tighter leading-none mt-4">
-            {stats.activeProposals}
+            {stats.pending}
           </span>
         </div>
 
@@ -75,7 +85,7 @@ export default function FreelancerDashboard() {
             </span>
           </div>
           <span className="text-4xl font-black text-black tracking-tighter leading-none mt-4">
-            {stats.acceptedProposals}
+            {stats.accepted}
           </span>
         </div>
 
@@ -86,11 +96,11 @@ export default function FreelancerDashboard() {
               Total Earnings
             </span>
             <span className="text-[10px] font-bold tracking-tight text-white/60 block">
-              withdrawn / lifetime volume
+              lifetime payment volume
             </span>
           </div>
           <span className="text-3xl font-black text-white tracking-tighter leading-none mt-4">
-            {stats.totalEarnings}
+            ${stats.totalEarnings}
           </span>
         </div>
       </div>

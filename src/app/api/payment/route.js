@@ -17,6 +17,8 @@ export async function POST(req) {
     const price = formData.get("price");
     const title = formData.get("title");
     const taskId = formData.get("taskId");
+    const freelancerEmail = formData.get("freelancerEmail");
+    const actualTaskId = formData.get("actualTaskId");
     
     const baseDomain = origin && origin !== "null" ? origin : `http://${headersList.get("host") || "localhost:3000"}`;
 
@@ -40,13 +42,14 @@ export async function POST(req) {
         userEmail: user.email,
         title,
         taskId,
+        freelancerEmail,
+        actualTaskId,
       },
       mode: "payment",
       success_url: `${baseDomain}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseDomain}/cancel`,
     });
     
-    // Return JSON instead of redirect so fetch doesn't follow it automatically
     return NextResponse.json({ url: session.url });
   } catch (err) {
     return NextResponse.json(

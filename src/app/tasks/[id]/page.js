@@ -13,6 +13,8 @@ export default function DynamicTaskDetailsPage() {
   const [error, setError] = useState("");
   const [submitLoading, setSubmitLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
+  const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [checkingProposal, setCheckingProposal] = useState(false);
 
   // Fetch the specific task data using the URL ID
   useEffect(() => {
@@ -20,6 +22,8 @@ export default function DynamicTaskDetailsPage() {
 
     const fetchTaskDetails = async () => {
       try {
+        await Promise.resolve();
+        setLoading(true);
         const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/tasks/${id}`);
         if (!res.ok) throw new Error("Task profile not found or server error.");
         const data = await res.json();
@@ -34,11 +38,44 @@ export default function DynamicTaskDetailsPage() {
     fetchTaskDetails();
   }, [id]);
 
+  useEffect(() => {
+    let active = true;
+
+    const checkExistingProposal = async () => {
+      try {
+        await Promise.resolve();
+        if (!id || !session?.user?.email || session?.user?.role !== "freelancer") {
+          if (active) setHasSubmitted(false);
+          return;
+        }
+
+        if (active) setCheckingProposal(true);
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_SERVER_URL}/api/proposals/freelancer/${encodeURIComponent(session.user.email)}`
+        );
+        if (res.ok && active) {
+          const proposals = await res.json();
+          const alreadySubmitted = proposals.some((p) => p.task_id === id);
+          setHasSubmitted(alreadySubmitted);
+        }
+      } catch (err) {
+        console.error("Error checking existing proposal:", err);
+      } finally {
+        if (active) setCheckingProposal(false);
+      }
+    };
+
+    checkExistingProposal();
+
+    return () => {
+      active = false;
+    };
+  }, [id, session?.user?.email, session?.user?.role]);
+
   const handleSubmitProposal = async (e) => {
     e.preventDefault();
     setSubmitLoading(true);
     setSuccessMsg("");
-// task_id, freelancer_email, proposed_budget, estimated_days, cover_note, status,submitted_at
     const formData = new FormData(e.currentTarget);
     const proposalPayload = {
       task_id: id,
@@ -58,9 +95,13 @@ export default function DynamicTaskDetailsPage() {
         body: JSON.stringify(proposalPayload),
       });
 
-      if (!res.ok) throw new Error("Could not submit your bid proposal.");
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.error || "Could not submit your bid proposal.");
+      }
       
       setSuccessMsg("PROPOSAL SUBMITTED SUCCESSFULLY.");
+      setHasSubmitted(true);
       e.target.reset();
     } catch (err) {
       alert(err.message);
@@ -152,60 +193,107 @@ export default function DynamicTaskDetailsPage() {
                 Submit Proposal
               </h3>
 
-              {successMsg && (
-                <div className="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 text-[10px] font-bold tracking-wider uppercase">
-                  ✓ {successMsg}
+              {checkingProposal ? (
+                <div className="text-[10px] font-bold tracking-wider text-black/40 uppercase py-6 text-center">
+                  Checking bid status...
                 </div>
+              ) : !session?.user ? (
+                <div className="space-y-4 py-4 text-center">
+                  <p className="text-[10px] font-bold tracking-wider text-black/60 uppercase leading-relaxed">
+                    Please sign in to submit a proposal for this task.
+                  </p>
+                  <a
+                    href="/signin"
+                    className="inline-block w-full bg-black text-white text-center text-[10px] font-bold uppercase tracking-widest py-3 hover:bg-black/90 transition-colors border border-black rounded-none"
+                  >
+                    Go to Sign In
+                  </a>
+                </div>
+              ) : session?.user?.role !== "freelancer" ? (
+                <div className="p-4 bg-[#EAEAEA] border border-black/10 text-center">
+                  <span className="text-[10px] font-bold tracking-wider text-black/60 uppercase block">
+                    Clients cannot submit proposals.
+                  </span>
+                  <span className="text-[9px] text-black/40 uppercase font-bold tracking-wider block mt-1">
+                    Log in as a freelancer to bid.
+                  </span>
+                </div>
+              ) : task.status && task.status.toLowerCase() !== "open" ? (
+                <div className="p-4 bg-amber-50 border border-amber-200 text-center">
+                  <span className="text-[10px] font-bold tracking-wider text-amber-700 uppercase block">
+                    This task is no longer open.
+                  </span>
+                  <span className="text-[9px] text-amber-600 uppercase font-bold tracking-wider block mt-1">
+                    Live Status: {task.status}
+                  </span>
+                </div>
+              ) : hasSubmitted ? (
+                <div className="p-4 bg-emerald-50 border border-emerald-200 text-center">
+                  <span className="text-[10px] font-bold tracking-wider text-emerald-700 uppercase block">
+                    Proposal Submitted
+                  </span>
+                  <span className="text-[9px] text-emerald-600/75 uppercase font-bold tracking-wider block mt-1">
+                    You have already applied to this task.
+                  </span>
+                </div>
+              ) : (
+                <>
+                  {successMsg && (
+                    <div className="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 text-[10px] font-bold tracking-wider uppercase">
+                      ✓ {successMsg}
+                    </div>
+                  )}
+
+                  <form onSubmit={handleSubmitProposal} className="space-y-4">
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[9px] font-bold tracking-widest text-black/50 uppercase">
+                        Your Bid (USD)
+                      </label>
+                      <input 
+                        name="budget"
+                        type="number" 
+                        placeholder={task.budget || "1500"} 
+                        className="w-full border border-black/20 px-3 py-2.5 text-xs text-black focus:outline-none focus:border-black rounded-none placeholder-black/20"
+                        required 
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[9px] font-bold tracking-widest text-black/50 uppercase">
+                        Estimated Days
+                      </label>
+                      <input 
+                        name="days"
+                        type="number" 
+                        placeholder="14" 
+                        className="w-full border border-black/20 px-3 py-2.5 text-xs text-black focus:outline-none focus:border-black rounded-none placeholder-black/20"
+                        required 
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[9px] font-bold tracking-widest text-black/50 uppercase">
+                        Cover Note
+                      </label>
+                      <textarea 
+                        name="coverNote"
+                        rows={4}
+                        placeholder="Explain why you are the best fit..." 
+                        className="w-full border border-black/20 px-3 py-2.5 text-xs text-black focus:outline-none focus:border-black rounded-none resize-none placeholder-black/20"
+                        required 
+                      />
+                    </div>
+
+                    <button 
+                      type="submit"
+                      disabled={submitLoading}
+                      className="w-full bg-black text-white text-[11px] font-bold uppercase tracking-[0.15em] py-3 mt-2 hover:bg-black/90 transition-colors cursor-pointer disabled:bg-black/40 rounded-none"
+                    >
+                      {submitLoading ? "Submitting..." : "Submit Proposal"}
+                    </button>
+                  </form>
+                </>
               )}
-
-              <form onSubmit={handleSubmitProposal} className="space-y-4">
-                <div className="flex flex-col gap-1">
-                  <label className="text-[9px] font-bold tracking-widest text-black/50 uppercase">
-                    Your Bid (USD)
-                  </label>
-                  <input 
-                    name="budget"
-                    type="number" 
-                    placeholder={task.budget || "1500"} 
-                    className="w-full border border-black/20 px-3 py-2.5 text-xs text-black focus:outline-none focus:border-black rounded-none placeholder-black/20"
-                    required 
-                  />
-                </div>
-
-                <div className="flex flex-col gap-1">
-                  <label className="text-[9px] font-bold tracking-widest text-black/50 uppercase">
-                    Estimated Days
-                  </label>
-                  <input 
-                    name="days"
-                    type="number" 
-                    placeholder="14" 
-                    className="w-full border border-black/20 px-3 py-2.5 text-xs text-black focus:outline-none focus:border-black rounded-none placeholder-black/20"
-                    required 
-                  />
-                </div>
-
-                <div className="flex flex-col gap-1">
-                  <label className="text-[9px] font-bold tracking-widest text-black/50 uppercase">
-                    Cover Note
-                  </label>
-                  <textarea 
-                    name="coverNote"
-                    rows={4}
-                    placeholder="Explain why you are the best fit..." 
-                    className="w-full border border-black/20 px-3 py-2.5 text-xs text-black focus:outline-none focus:border-black rounded-none resize-none placeholder-black/20"
-                    required 
-                  />
-                </div>
-
-                <button 
-                  type="submit"
-                  disabled={submitLoading}
-                  className="w-full bg-black text-white text-[11px] font-bold uppercase tracking-[0.15em] py-3 mt-2 hover:bg-black/90 transition-colors cursor-pointer disabled:bg-black/40 rounded-none"
-                >
-                  {submitLoading ? "Submitting..." : "Submit Proposal"}
-                </button>
-              </form>
             </div>
 
             {/* Client Context Information Badge */}

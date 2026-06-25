@@ -10,6 +10,8 @@ export default async function Success({ searchParams }) {
   const {
     status,
     customer_details: { email: customerEmail },
+    metadata,
+    payment_intent,
   } = await stripe.checkout.sessions.retrieve(session_id, {
     expand: ["line_items", "payment_intent"],
   });
@@ -19,6 +21,28 @@ export default async function Success({ searchParams }) {
   }
 
   if (status === "complete") {
+    try {
+      await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000'}/api/payments`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          payment: {
+            client_email: customerEmail,
+            freelancer_email: metadata.freelancerEmail,
+            task_id: metadata.actualTaskId,
+            amount: Number(metadata.price),
+            transaction_id: payment_intent.id,
+            payment_status: status,
+            paid_at: new Date().toISOString(),
+          }
+        }),
+      });
+    } catch (err) {
+      console.error("Failed to record payment:", err);
+    }
+
     return (
       <section id="success">
         <p>
