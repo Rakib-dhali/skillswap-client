@@ -13,17 +13,65 @@ export default function FreelancerDashboard() {
     accepted: 0,
     totalEarnings: 0,
   });
+  const [activities, setActivities] = useState([]);
+  const [activityLoading, setActivityLoading] = useState(true);
+  const [activityError, setActivityError] = useState("");
+  const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:5000";
+
+  const formatRelativeTime = (timestamp) => {
+    if (!timestamp) return "just now";
+    const date = new Date(timestamp);
+    const diff = Date.now() - date.getTime();
+    const minutes = Math.round(diff / 60000);
+    if (minutes < 1) return "just now";
+    if (minutes < 60) return `${minutes} min ago`;
+    const hours = Math.round(minutes / 60);
+    if (hours < 24) return `${hours} hr ago`;
+    const days = Math.round(hours / 24);
+    return `${days} day${days === 1 ? "" : "s"} ago`;
+  };
 
   useEffect(() => {
     if (user?.email) {
       fetch(
-        `${process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:5000"}/api/freelancer/stats/${encodeURIComponent(user.email)}`
+        `${serverUrl}/api/freelancer/stats/${encodeURIComponent(user.email)}`
       )
         .then((res) => res.json())
         .then((data) => setStats(data))
         .catch(console.error);
     }
-  }, [user?.email]);
+  }, [user?.email, serverUrl]);
+
+  useEffect(() => {
+    let active = true;
+
+    const fetchActivity = async () => {
+      if (!user?.email) return;
+      setActivityLoading(true);
+      try {
+        const response = await fetch(
+          `${serverUrl}/api/freelancer/activity/${encodeURIComponent(user.email)}`
+        );
+        if (!response.ok) {
+          throw new Error("Unable to load activity feed.");
+        }
+        const data = await response.json();
+        if (!active) return;
+        setActivities(data);
+      } catch (error) {
+        if (!active) return;
+        setActivityError(error.message || "Unable to load activity feed.");
+      } finally {
+        if (!active) return;
+        setActivityLoading(false);
+      }
+    };
+
+    fetchActivity();
+    return () => {
+      active = false;
+    };
+  }, [user?.email, serverUrl]);
 
   return (
     <div className="space-y-10 select-none">
@@ -105,25 +153,46 @@ export default function FreelancerDashboard() {
         </div>
       </div>
 
-      {/* Recent Activity Blueprint Canvas */}
+      {/* Recent Activity Canvas */}
       <div className="bg-white border border-black/10 p-8 shadow-sm rounded-none">
         <h2 className="text-sm font-black tracking-widest text-black uppercase border-b border-black/10 pb-4 mb-6">
-          Recent Activity Blueprint
+          Recent Activity
         </h2>
 
-        {/* Gray Blueprint box mimicking screenshot */}
-        <div className="bg-[#EAEAEA] border border-black/5 p-12 text-center flex flex-col items-center justify-center min-h-80 rounded-none select-none">
-          <div className="w-10 h-10 bg-white border border-black/10 flex items-center justify-center text-lg mb-4 shadow-sm">
-            📊
+        {activityLoading ? (
+          <div className="text-center text-[10px] uppercase tracking-[0.35em] text-black/40 py-10">
+            Loading activity...
           </div>
-          <span className="text-[10px] font-bold tracking-[0.2em] text-black uppercase block mb-1">
-            Activity Matrix Monitor
-          </span>
-          <span className="text-[9px] font-bold tracking-wider text-black/40 uppercase block max-w-sm leading-relaxed">
-            Visualizing active proposals, project milestones, and running
-            payment nodes.
-          </span>
-        </div>
+        ) : activityError ? (
+          <div className="text-center text-[10px] text-red-600 uppercase tracking-[0.35em] py-10">
+            {activityError}
+          </div>
+        ) : activities.length === 0 ? (
+          <div className="text-center text-[10px] uppercase tracking-[0.35em] text-black/40 py-10">
+            No recent activity yet.
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {activities.map((activity) => (
+              <div
+                key={activity.id}
+                className="border-l-4 border-black pl-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 hover:bg-black/5 transition-colors"
+              >
+                <div>
+                  <h4 className="text-xs font-black uppercase tracking-tight text-black">
+                    {activity.title}
+                  </h4>
+                  <p className="text-[10px] font-medium text-black/50 uppercase mt-0.5">
+                    {activity.detail}
+                  </p>
+                </div>
+                <span className="text-[9px] font-bold tracking-wider text-black/40 uppercase self-start sm:self-auto">
+                  {activity.time}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
