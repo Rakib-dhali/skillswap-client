@@ -102,7 +102,7 @@ export default function DashboardLayout({ children }) {
           { name: "Dashboard", href: "/dashboard/client", icon: <LuLayoutDashboard className="w-4 h-4" /> },
           { name: "Tasks", href: "/dashboard/client/tasks", icon: <LuFileText className="w-4 h-4" /> },
           { name: "Proposals", href: "/dashboard/client/proposals", icon: <LuInbox className="w-4 h-4" /> },
-          { name: "Edit Profile", href: "/dashboard/freelancer/profile", icon: <LuUser className="w-4 h-4" /> },
+          { name: "Edit Profile", href: "/dashboard/client/profile", icon: <LuUser className="w-4 h-4" /> },
         ];
     }
   };
