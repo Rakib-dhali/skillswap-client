@@ -22,8 +22,14 @@ export default function LoginPage() {
         email,
         password,
         callbackURL: "/dashboard",
-        rememberMe: true
+        rememberMe: true,
       });
+
+      if (error) {
+        setErrorMsg(error.message || "Invalid credentials. Please try again.");
+      } else {
+        router.push("/dashboard");
+      }
 
       if (error) {
         setErrorMsg(error.message || "Invalid credentials. Please try again.");

@@ -1,4 +1,5 @@
 import { betterAuth } from "better-auth";
+import { admin } from "better-auth/plugins";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
 import { MongoClient } from "mongodb";
 
@@ -9,6 +10,12 @@ export const auth = betterAuth({
   database: mongodbAdapter(db, {
     client,
   }),
+  plugins: [
+    admin({
+      defaultRole: "client",
+      adminRoles: ["admin"],
+    }),
+  ],
   emailAndPassword: {
     enabled: true,
     autoSignIn: true,

@@ -33,8 +33,22 @@ export default function DashboardLayout({ children }) {
       if (!session?.user) {
         router.push("/signin");
       } else {
+        if (session.user.banned) {
+          const signOutUser = async () => {
+            await authClient.signOut();
+            router.push("/signin");
+          };
+          signOutUser();
+          return;
+        }
+
         const userRole = session.user.role || "client";
-        
+
+        // Guard admin routes
+        if (pathname.startsWith("/dashboard/admin") && userRole !== "admin") {
+          router.push(`/dashboard/${userRole}`);
+        }
+
         // Guard client routes
         if (pathname.startsWith("/dashboard/client") && userRole !== "client" && userRole !== "admin") {
           router.push(`/dashboard/${userRole}`);
