@@ -1,10 +1,5 @@
-/**
- * Uploads an image file to Imgbb using API v1.
- * @param {File} file - The file to upload.
- * @returns {Promise<string>} The uploaded image URL.
- */
 export async function uploadImage(file) {
-  const apiKey = "9500f48882e27a5433737582d1f6dd87";
+  const apiKey = process.env.NEXT_PUBLIC_IMAGEBB_APIa_KEY;
   const url = `https://api.imgbb.com/1/upload?key=${apiKey}`;
 
   const formData = new FormData();

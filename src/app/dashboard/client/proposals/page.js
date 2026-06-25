@@ -36,19 +36,34 @@ export default function ClientProposalsPage() {
   }, [user?.email]);
 
   // Redirect to dummy Stripe checkout page
-  const handleAcceptWithPayment = (e, proposal) => {
-    e.preventDefault();
-    const params = new URLSearchParams({
-      proposalId: proposal._id,
-      taskId: proposal.task_id,
-      freelancerEmail: proposal.freelancer_email,
-      amount: proposal.proposed_budget,
-      title: proposal.task_title,
-      clientEmail: user?.email || "",
-    });
-    router.push(`/payment/checkout?${params.toString()}`);
-  };
+ const handleAcceptWithPayment = async (e, proposal) => {
+  e.preventDefault();
 
+  try {
+    const formData = new FormData();
+
+    formData.append("price", proposal.proposed_budget);
+    formData.append("title", proposal.task_title);
+    formData.append("taskId", proposal._id); // proposal id
+    formData.append("actualTaskId", proposal.task_id); // task id
+    formData.append("freelancerEmail", proposal.freelancer_email);
+
+    const response = await fetch("/api/payment", {
+      method: "POST",
+      body: formData,
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Failed to create checkout session");
+    }
+
+    window.location.assign(data.url);
+  } catch (error) {
+    alert(error.message);
+  }
+};
   // Standard reject updates remain direct REST calls
   const handleStatusUpdate = async (proposalId, newStatus) => {
     setUpdatingId(proposalId);
