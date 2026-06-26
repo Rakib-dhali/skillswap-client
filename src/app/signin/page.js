@@ -9,6 +9,26 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
+  const redirectByRole = async () => {
+    try {
+      const { data } = await authClient.getSession();
+      const role = data?.user?.role || "client";
+
+      if (role === "client") {
+        router.push("/");
+      } else if (role === "freelancer") {
+        router.push("/dashboard/freelancer");
+      } else if (role === "admin") {
+        router.push("/dashboard/admin");
+      } else {
+        router.push("/dashboard");
+      }
+    } catch (err) {
+      console.error(err);
+      router.push("/");
+    }
+  };
+
   const handleSignIn = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -21,20 +41,13 @@ export default function LoginPage() {
       const { data, error } = await authClient.signIn.email({
         email,
         password,
-        callbackURL: "/dashboard",
         rememberMe: true,
       });
 
       if (error) {
         setErrorMsg(error.message || "Invalid credentials. Please try again.");
       } else {
-        router.push("/dashboard");
-      }
-
-      if (error) {
-        setErrorMsg(error.message || "Invalid credentials. Please try again.");
-      } else {
-        router.push("/dashboard");
+        await redirectByRole();
       }
     } catch (err) {
       setErrorMsg("Something went wrong. Please try again.");

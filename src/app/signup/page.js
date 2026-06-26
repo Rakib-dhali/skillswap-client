@@ -1,6 +1,7 @@
 "use client";
 
 import { authClient } from "@/lib/auth-client";
+import { uploadImage } from "@/lib/imageUpload";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -9,6 +10,45 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [selectedRole, setSelectedRole] = useState("client"); // Default tracking local state
+  const [photoUrl, setPhotoUrl] = useState("");
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+
+  const redirectByRole = async () => {
+    try {
+      const { data } = await authClient.getSession();
+      const role = data?.user?.role || "client";
+
+      if (role === "client") {
+        router.push("/");
+      } else if (role === "freelancer") {
+        router.push("/dashboard/freelancer");
+      } else if (role === "admin") {
+        router.push("/dashboard/admin");
+      } else {
+        router.push("/dashboard");
+      }
+    } catch (err) {
+      console.error(err);
+      router.push("/");
+    }
+  };
+
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setErrorMsg("");
+    setUploadingPhoto(true);
+
+    try {
+      const uploadedUrl = await uploadImage(file);
+      setPhotoUrl(uploadedUrl);
+    } catch (err) {
+      setErrorMsg(err.message || "Photo upload failed. Please try again.");
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
 
   const createAccount = async (e) => {
     e.preventDefault();
@@ -17,6 +57,8 @@ export default function RegisterPage() {
 
     const formData = new FormData(e.currentTarget);
     const { name, email, password } = Object.fromEntries(formData.entries());
+    const photoInputUrl = formData.get("photoUrl")?.toString().trim();
+    const finalPhotoUrl = photoInputUrl || photoUrl;
 
     try {
       const { data, error } = await authClient.signUp.email({
@@ -24,14 +66,15 @@ export default function RegisterPage() {
         password,
         name,
         role: selectedRole,
+        imageUrl: finalPhotoUrl || undefined,
         callbackURL: "/signin",
-        rememberMe: true,  
+        rememberMe: true,
       });
 
       if (error) {
         setErrorMsg(error.message || "An error occurred during sign up.");
       } else {
-        router.push("/dashboard");
+        router.push("/signin");
       }
     } catch (err) {
       setErrorMsg("Something went wrong. Please try again.");
@@ -47,8 +90,7 @@ export default function RegisterPage() {
         provider: "google",
       });
       if (data) {
-        console.log(data);
-        router.push("/dashboard");
+        await redirectByRole();
       }
       if (error) {
         setErrorMsg(error.message);
@@ -154,6 +196,37 @@ export default function RegisterPage() {
               className="w-full border border-black/20 px-4 py-3 text-sm text-black placeholder-black/30 focus:outline-none focus:border-black transition-colors rounded-none"
               required
             />
+          </div>
+
+          {/* Profile Photo Block */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[10px] font-bold tracking-widest text-black uppercase">
+              Profile Photo
+            </label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handlePhotoUpload}
+              className="w-full border border-black/20 px-4 py-3 text-sm text-black file:mr-4 file:py-2 file:px-3 file:border-0 file:bg-black file:text-white file:text-xs file:font-bold file:tracking-[0.2em] file:uppercase"
+            />
+            <input
+              name="photoUrl"
+              type="url"
+              value={photoUrl}
+              onChange={(e) => setPhotoUrl(e.target.value)}
+              placeholder="Or enter image URL"
+              className="w-full border border-black/20 px-4 py-3 text-sm text-black placeholder-black/30 focus:outline-none focus:border-black transition-colors rounded-none"
+            />
+            {uploadingPhoto && (
+              <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-black/50">
+                Uploading photo...
+              </p>
+            )}
+            {photoUrl && !uploadingPhoto && (
+              <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-black/60">
+                Photo ready to use
+              </p>
+            )}
           </div>
 
           {/* Choose Password Block */}

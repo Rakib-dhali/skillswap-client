@@ -33,6 +33,11 @@ export const auth = betterAuth({
       role: {
         defaultValue: "client",
       },
+      imageUrl: {
+        type: "string",
+        required: true,
+        defaultValue: "",
+      },
     },
   },
   session: {
