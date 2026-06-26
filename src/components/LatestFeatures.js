@@ -1,18 +1,26 @@
-async function LatestFeatures() {
-  let tasksData = [];
+"use client";
 
-  try {
-    // 1. Fixed missing await keyword
-    const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/featured-task`, {
-      cache: 'no-store' // Ensures dynamic data updates
-    });
-    
-    if (res.ok) {
-      tasksData = await res.json();
-    }
-  } catch (error) {
-    console.error("Failed to fetch featured tasks:", error);
-  }
+import { useEffect, useState } from "react";
+
+function LatestFeatures() {
+  const [tasksData, setTasksData] = useState([]);
+
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/featured-task`);
+
+        if (res.ok) {
+          setTasksData(await res.json());
+        }
+      } catch (error) {
+        console.error("Failed to fetch featured tasks:", error);
+      }
+    };
+
+    fetchTasks();
+  }, []);
+
   return (
     <section className="bg-[#F5F5F5] py-16 px-6 md:px-16 lg:px-24 select-none border-b border-black/5">
       <div className="max-w-7xl mx-auto">
@@ -30,9 +38,8 @@ async function LatestFeatures() {
         {/* Responsive Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-16">
           {tasksData.map((task) => {
-            // Safe fallback value mapping for key and deadline format
             const taskId = task._id;
-            
+
             return (
               <div 
                 key={taskId} 

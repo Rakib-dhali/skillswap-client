@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata = {
   title: "SkillSwap",
-  description: "",
+  description: "Swap your skills with freelancers globally",
 };
 
 export default function RootLayout({ children }) {
