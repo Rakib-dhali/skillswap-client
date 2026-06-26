@@ -38,7 +38,7 @@ export default function AdminTasksPage() {
     try {
       const res = await fetch(`${serverUrl}/api/tasks/${taskId}/status`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${await authClient.token()}` },
         body: JSON.stringify({ status }),
       });
       if (!res.ok) throw new Error("Unable to update task status.");

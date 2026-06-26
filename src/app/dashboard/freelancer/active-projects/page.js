@@ -52,7 +52,7 @@ export default function ActiveProjectsPage() {
     try {
       const res = await fetch(`${serverUrl}/api/tasks/${selectedProjectId}/deliverable`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${await authClient.token()}` },
         body: JSON.stringify({ deliverable_url: deliverableUrl }),
       });
       if (!res.ok) throw new Error("Failed to submit deliverable.");

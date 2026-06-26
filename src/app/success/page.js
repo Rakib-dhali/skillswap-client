@@ -72,6 +72,7 @@ export default async function Success({ searchParams }) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${await authClient.token()}`,
       },
       body: JSON.stringify({
         payment: {

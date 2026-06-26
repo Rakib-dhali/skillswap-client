@@ -79,6 +79,7 @@ export default function MyTasksPage() {
     try {
       const res = await fetch(`${serverUrl}/api/tasks/${taskId}`, {
         method: "DELETE",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${await authClient.token()}` },
       });
       if (!res.ok) {
         const data = await res.json();

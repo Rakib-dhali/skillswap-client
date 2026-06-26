@@ -22,7 +22,8 @@ export default function FreelancerProfilePage() {
     hourlyRate: "",
   });
 
-  const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:5000";
+  const serverUrl =
+    process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:5000";
 
   useEffect(() => {
     if (!user?.email) return;
@@ -32,16 +33,18 @@ export default function FreelancerProfilePage() {
       try {
         setLoading(true);
         const res = await fetch(
-          `${serverUrl}/api/freelancers/profile/${encodeURIComponent(user.email)}`
+          `${serverUrl}/api/freelancers/profile/${encodeURIComponent(user.email)}`,
         );
         if (!res.ok) throw new Error("Failed to load profile.");
         const data = await res.json();
-        
+
         if (active) {
           setProfile({
             name: data.name || "",
             image: data.image || "",
-            skills: Array.isArray(data.skills) ? data.skills.join(", ") : (data.skills || ""),
+            skills: Array.isArray(data.skills)
+              ? data.skills.join(", ")
+              : data.skills || "",
             bio: data.bio || "",
             hourlyRate: data.hourlyRate || "",
           });
@@ -116,13 +119,16 @@ export default function FreelancerProfilePage() {
         `${serverUrl}/api/freelancers/profile/${encodeURIComponent(user.email)}`,
         {
           method: "PATCH",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${await authClient.token()}`,
+          },
           body: JSON.stringify(payload),
-        }
+        },
       );
 
       if (!res.ok) throw new Error("Failed to update profile.");
-      
+
       setSuccess("Profile updated successfully!");
     } catch (err) {
       setError(err.message);
@@ -200,14 +206,18 @@ export default function FreelancerProfilePage() {
           {/* Photo File System / URL Input Group */}
           <div className="flex flex-col gap-1.5">
             <label className="text-[10px] font-bold tracking-widest text-black/60 uppercase">
-              Profile Photo ({uploadingImage ? "Uploading Asset..." : "Direct File Upload or URL"})
+              Profile Photo (
+              {uploadingImage
+                ? "Uploading Asset..."
+                : "Direct File Upload or URL"}
+              )
             </label>
             <div className="flex flex-col sm:flex-row items-stretch gap-3">
               {profile.image && (
                 <div className="w-12 h-12 border border-black/10 bg-white shrink-0 p-0.5">
-                  <img 
-                    src={profile.image} 
-                    alt="Uploaded Avatar" 
+                  <img
+                    src={profile.image}
+                    alt="Uploaded Avatar"
                     className="w-full h-full object-cover grayscale"
                   />
                 </div>
@@ -221,7 +231,9 @@ export default function FreelancerProfilePage() {
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
                 />
                 <span className="text-[10px] font-bold tracking-wide text-black/40 uppercase block text-center sm:text-left">
-                  {uploadingImage ? "⚡ Transmitting image bytes..." : "Click or drag to overwrite avatar file"}
+                  {uploadingImage
+                    ? "⚡ Transmitting image bytes..."
+                    : "Click or drag to overwrite avatar file"}
                 </span>
               </div>
             </div>
