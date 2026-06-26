@@ -6,14 +6,13 @@ import { authClient } from "@/lib/auth-client";
 import { useRouter, usePathname } from "next/navigation";
 
 const Navbar = () => {
-
   const router = useRouter();
   const pathname = usePathname();
 
   const { data: session, isPending } = authClient.useSession();
   const isLoggedIn = session?.user;
 
-  if (pathname && (pathname.startsWith("/dashboard") || pathname.startsWith("/signin") || pathname.startsWith("/signup") || pathname.startsWith("/payment"))) {
+  if (pathname && (pathname.startsWith("/dashboard") || pathname.startsWith("/signin") || pathname.startsWith("/signup") || pathname.startsWith("/payment") || pathname.startsWith("success"))) {
     return null;
   }
 
@@ -25,6 +24,14 @@ const Navbar = () => {
     if (data) {
       router.push("/signin");
     }
+  };
+
+  // Helper utility to make code cleaner
+  const getLinkClass = (path) => {
+    const baseClass = "hover:text-black transition-colors duration-200 cursor-pointer pb-1 border-b-2";
+    const isActive = pathname === path;
+    
+    return `${baseClass} ${isActive ? "text-black border-black" : "text-black/70 border-transparent"}`;
   };
 
   return (
@@ -40,16 +47,16 @@ const Navbar = () => {
           </Link>
         </div>
 
-        {/* Links (Hidden on mobile, flex on desktop) */}
+        {/* Links with conditional active underlines */}
         <div className="hidden md:block">
-          <ul className="flex items-center gap-8 text-xs font-bold tracking-[0.15em] uppercase text-black/70">
-            <li className="hover:text-black transition-colors duration-200 cursor-pointer">
+          <ul className="flex items-center gap-8 text-xs font-bold tracking-[0.15em] uppercase h-full pt-1">
+            <li className={getLinkClass("/")}>
               <Link href="/">Home</Link>
             </li>
-            <li className="hover:text-black transition-colors duration-200 cursor-pointer">
+            <li className={getLinkClass("/tasks")}>
               <Link href="/tasks">Browse Tasks</Link>
             </li>
-            <li className="hover:text-black transition-colors duration-200 cursor-pointer">
+            <li className={getLinkClass("/freelancers")}>
               <Link href="/freelancers">Browse Freelancers</Link>
             </li>
           </ul>
@@ -58,12 +65,14 @@ const Navbar = () => {
         {/* Buttons */}
         <div className="flex items-center gap-4 sm:gap-6 text-xs font-bold tracking-[0.15em] uppercase">
           {isPending ? (
-            // Loading skeleton while session is being fetched
             <div className="w-20 h-8 bg-black/10 animate-pulse" />
           ) : isLoggedIn ? (
-            // User is logged in
             <>
-              {/* Avatar: image if available, else first-letter circle */}
+              <Link href="/dashboard">
+                <button className="text-black/70 hover:text-black transition-colors duration-200 cursor-pointer">
+                  Dashboard
+                </button>
+              </Link>
               {isLoggedIn.image ? (
                 <div className="relative w-8 h-8 rounded-full overflow-hidden border border-black/20 shrink-0">
                   <Image
@@ -81,11 +90,6 @@ const Navbar = () => {
                   {(isLoggedIn.name || isLoggedIn.email || "?").charAt(0)}
                 </div>
               )}
-              <Link href="/dashboard">
-                <button className="text-black/70 hover:text-black transition-colors duration-200 cursor-pointer">
-                  Dashboard
-                </button>
-              </Link>
               <button
                 onClick={signOut}
                 className="bg-black text-white px-5 py-2.5 hover:bg-black/90 transition-colors duration-200 cursor-pointer tracking-wider"
@@ -94,7 +98,6 @@ const Navbar = () => {
               </button>
             </>
           ) : (
-            // User is NOT logged in
             <>
               <Link href="/signin">
                 <button className="text-black/70 hover:text-black transition-colors duration-200 cursor-pointer">
