@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 
+
 export default function PostTaskPage() {
   const router = useRouter();
   const { data: session } = authClient.useSession();
@@ -30,23 +31,41 @@ export default function PostTaskPage() {
     setError("");
 
     const formData = new FormData(e.currentTarget);
+    if (!session) {
+      setError("Please sign in before creating a task.");
+      setLoading(false);
+      return;
+    }
+
     const payload = {
       title: formData.get("title"),
       category: formData.get("category"),
       budget: parseFloat(formData.get("budget")),
       description: formData.get("description"),
       deadline: formData.get("deadline"),
-      client_email: session?.user?.email || "",
-      client_name: session?.user?.name || "",
+      client_email: session.user.email,
+      client_name: session.user.name,
     };
 
     try {
       const serverUrl =
         process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:5000";
+
+      const tokenResponse = await authClient.token();
+      if (tokenResponse.error) {
+        throw new Error(tokenResponse.error.message || "Failed to retrieve auth token.");
+      }
+
+      const token = tokenResponse.data?.token;
+      if (!token) {
+        throw new Error("Failed to retrieve auth token.");
+      }
+
       const res = await fetch(`${serverUrl}/api/tasks`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(payload),
       });

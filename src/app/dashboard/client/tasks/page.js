@@ -16,7 +16,8 @@ export default function MyTasksPage() {
   const [updating, setUpdating] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:5000";
+  const serverUrl =
+    process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:5000";
 
   useEffect(() => {
     if (!user?.email) return;
@@ -26,7 +27,7 @@ export default function MyTasksPage() {
       try {
         setLoading(true);
         const res = await fetch(
-          `${serverUrl}/api/tasks/client/${encodeURIComponent(user.email)}`
+          `${serverUrl}/api/tasks/client/${encodeURIComponent(user.email)}`,
         );
         if (!res.ok) throw new Error("Failed to load tasks.");
         const data = await res.json();
@@ -49,13 +50,15 @@ export default function MyTasksPage() {
     setEditingId(task._id);
     setEditDescription(task.description);
   };
-
   const handleSaveEdit = async (taskId) => {
     setUpdating(true);
     try {
       const res = await fetch(`${serverUrl}/api/tasks/${taskId}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${await authClient.token()}`,
+        },
         body: JSON.stringify({ description: editDescription }),
       });
       if (!res.ok) {
@@ -183,7 +186,10 @@ export default function MyTasksPage() {
                 {tasks.map((task) => {
                   const isEditing = editingId === task._id;
                   return (
-                    <tr key={task._id} className="hover:bg-black/[0.02] transition-colors duration-150">
+                    <tr
+                      key={task._id}
+                      className="hover:bg-black/[0.02] transition-colors duration-150"
+                    >
                       <td className="py-4 pr-4 font-bold text-black uppercase tracking-tight max-w-xs truncate">
                         {task.title}
                       </td>
@@ -197,7 +203,9 @@ export default function MyTasksPage() {
                         {task.deadline || "—"}
                       </td>
                       <td className="py-4 px-4 text-center">
-                        <span className={`inline-block px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider border ${getStatusStyle(task.status)}`}>
+                        <span
+                          className={`inline-block px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider border ${getStatusStyle(task.status)}`}
+                        >
                           {task.status}
                         </span>
                       </td>

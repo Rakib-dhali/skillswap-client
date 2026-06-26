@@ -1,9 +1,9 @@
 import { betterAuth } from "better-auth";
-import { admin } from "better-auth/plugins";
+import { admin, jwt } from "better-auth/plugins";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
 import { MongoClient } from "mongodb";
 
- export const client = new MongoClient(process.env.NEXT_PUBLIC_MONGO_URI);
+export const client = new MongoClient(process.env.NEXT_PUBLIC_MONGO_URI);
 const db = client.db("skillswap");
 
 export const auth = betterAuth({
@@ -15,6 +15,7 @@ export const auth = betterAuth({
       defaultRole: "client",
       adminRoles: ["admin"],
     }),
+    jwt(),
   ],
   emailAndPassword: {
     enabled: true,
@@ -34,4 +35,13 @@ export const auth = betterAuth({
       },
     },
   },
+  session: {
+    cookieCache: {
+      enabled: true,
+      options: {
+        strategy: "jwt",
+        maxAge: 60 *24 * 30,
+      }
+    }
+  }
 });

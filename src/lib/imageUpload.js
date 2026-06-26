@@ -1,5 +1,5 @@
 export async function uploadImage(file) {
-  const apiKey = process.env.NEXT_PUBLIC_IMAGEBB_APIa_KEY;
+  const apiKey = process.env.NEXT_PUBLIC_IMAGEBB_API_KEY;
   const url = `https://api.imgbb.com/1/upload?key=${apiKey}`;
 
   const formData = new FormData();

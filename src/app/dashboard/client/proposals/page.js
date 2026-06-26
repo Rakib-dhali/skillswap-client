@@ -72,7 +72,7 @@ export default function ClientProposalsPage() {
         `${process.env.NEXT_PUBLIC_SERVER_URL}/api/proposals/${proposalId}/status`,
         {
           method: "PATCH",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${await authClient.token()}` },
           body: JSON.stringify({ status: newStatus }),
         },
       );
