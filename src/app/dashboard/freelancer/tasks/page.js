@@ -136,7 +136,7 @@ function BrowseTasksContent() {
   }
 
   return (
-    <section className="w-full bg-[#F5F5F5] min-h-screen py-16 font-sans select-none text-black">
+    <section className="w-full min-h-screen py-16 font-sans select-none text-black">
       <div className="max-w-7xl mx-auto ">
 
         <form onSubmit={handleApplyFilters} className="bg-white border border-black/10 p-6 shadow-sm mb-6 flex flex-col md:flex-row gap-4 items-end">

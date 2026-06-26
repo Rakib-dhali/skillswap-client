@@ -1,3 +1,4 @@
+import Link from "next/link";
 
 export default function HeroSection() {
   return (
@@ -22,12 +23,15 @@ export default function HeroSection() {
 
         {/* Action Buttons / Navigation Links */}
         <div className="mt-12 md:mt-16 flex flex-row items-center gap-8 sm:gap-12 text-xs sm:text-sm font-bold tracking-[0.15em] text-black/70 uppercase">
+        <Link href="/dashboard/client/tasks/post">
           <button className="hover:text-black bg-gray-100 hover:bg-gray-200 p-2 rounded transition-colors duration-200 cursor-pointer">
             Post a task
           </button>
+        </Link>
+        <Link href="/tasks">
           <button className="hover:text-black bg-gray-100 hover:bg-gray-200 p-2 rounded transition-colors duration-200 cursor-pointer">
             Browse tasks
-          </button>
+          </button></Link>
         </div>
 
       </div>
