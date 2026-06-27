@@ -8,7 +8,6 @@ export default function FreelancerDetailsPage() {
   const { id } = useParams(); // Grabs the dynamic user ID string from the browser route
   
   const [freelancer, setFreelancer] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [inviteLoading, setInviteLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
@@ -24,8 +23,6 @@ export default function FreelancerDetailsPage() {
         setFreelancer(data);
       } catch (err) {
         setError(err.message || "Something went wrong.");
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -33,20 +30,13 @@ export default function FreelancerDetailsPage() {
   }, [id]);
 
   const handleHireInvitation = async (e) => {
-  alert("THIS FEATURES NOT AVAILABLE YET")
+    e.preventDefault();
+    alert("THIS FEATURE IS NOT AVAILABLE YET");
   };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-xs font-bold tracking-widest text-black/40 uppercase">
-        Loading Expert Profile...
-      </div>
-    );
-  }
 
   if (error || !freelancer) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-xs font-bold tracking-widest text-red-600 uppercase">
+      <div className="min-h-screen flex items-center justify-center text-xs font-bold tracking-widest text-red-600 uppercase bg-[#F5F5F5]">
         ⚠️ Error: {error || "Profile data unavailable."}
       </div>
     );
@@ -55,7 +45,7 @@ export default function FreelancerDetailsPage() {
   const firstLetter = freelancer.name ? freelancer.name.charAt(0).toUpperCase() : "?";
 
   return (
-    <main className="min-h-screen py-12 select-none font-sans">
+    <main className="min-h-screen py-12 select-none font-sans bg-[#F5F5F5]">
       <div className="max-w-7xl mx-auto px-6 md:px-16 lg:px-24">
         
         {/* Upper Architecture: Identity Card Stack */}
@@ -68,7 +58,7 @@ export default function FreelancerDetailsPage() {
                 alt={freelancer.name} 
                 height={80}
                 width={80}
-                className="object-cover grayscale border border-black/10 rounded-none"
+                className="object-cover grayscale border border-black/10 rounded-none w-20 h-20"
               />
             ) : (
               <div className="w-20 h-20 bg-black text-white flex items-center justify-center font-black text-3xl rounded-none tracking-tighter">

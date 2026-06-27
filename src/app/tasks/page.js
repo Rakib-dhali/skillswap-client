@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
-function BrowseTasksContent() {
+export default function BrowseTasks() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -18,7 +18,7 @@ function BrowseTasksContent() {
   // 2. Track the search string locally
   const [search, setSearch] = useState(urlSearch);
   
-  // 3. FIX: Safely sync state during render if the browser's back/forward button changes the URL
+  // 3. Sync state during render if browser's back/forward navigation alters URL
   const [prevUrlSearch, setPrevUrlSearch] = useState(urlSearch);
   if (urlSearch !== prevUrlSearch) {
     setSearch(urlSearch);
@@ -27,7 +27,6 @@ function BrowseTasksContent() {
 
   // Core Data States
   const [tasks, setTasks] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [totalPages, setTotalPages] = useState(1);
 
@@ -44,7 +43,6 @@ function BrowseTasksContent() {
     "Marketing"
   ];
 
-  // Utility to cleanly rewrite parameters to the browser address bar
   const updateUrlParams = (updates) => {
     const params = new URLSearchParams(searchParams.toString());
     
@@ -59,11 +57,9 @@ function BrowseTasksContent() {
     router.push(`?${params.toString()}`);
   };
 
-  // Fetch from backend whenever the browser URL path changes
   useEffect(() => {
     const fetchTasks = async () => {
       try {
-        setLoading(true);
         const queryParams = new URLSearchParams({
           search: urlSearch,
           category: urlCategory,
@@ -80,8 +76,6 @@ function BrowseTasksContent() {
         setTotalPages(data.pagination?.totalPages || 1);
       } catch (err) {
         setError(err.message);
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -119,14 +113,6 @@ function BrowseTasksContent() {
     router.push("?"); 
   };
 
-  if (loading) {
-    return (
-      <div className="max-w-7xl mx-auto px-6 md:px-16 lg:px-24 py-12 text-xs font-bold tracking-widest text-black/40 uppercase">
-        Loading Marketplace Directory...
-      </div>
-    );
-  }
-
   if (error) {
     return (
       <div className="max-w-7xl mx-auto px-6 md:px-16 lg:px-24 py-12 text-xs font-bold tracking-widest text-red-600 uppercase">
@@ -149,7 +135,6 @@ function BrowseTasksContent() {
         </div>
 
         <form onSubmit={handleApplyFilters} className="bg-white border border-black/10 p-6 shadow-sm mb-6 flex flex-col md:flex-row gap-4 items-end">
-          
           <div className="w-full md:w-2/5 flex flex-col gap-1.5">
             <label className="text-[10px] font-bold tracking-widest text-black/40 uppercase">Keywords</label>
             <div className="relative w-full">
@@ -258,10 +243,7 @@ function BrowseTasksContent() {
 
               return (
                <Link key={taskKey} href={`/tasks/${task._id}`}>
-                <div
-                  
-                  className="bg-white border border-black/10 p-6 shadow-sm hover:border-black/30 transition-colors duration-200 flex flex-col justify-between"
-                >
+                <div className="bg-white border border-black/10 p-6 shadow-sm hover:border-black/30 transition-colors duration-200 flex flex-col justify-between h-full">
                   <div>
                     <div className="flex items-start justify-between gap-4 mb-3">
                       <h3 className="text-xl font-black tracking-tight text-black leading-snug hover:underline cursor-pointer">
@@ -289,7 +271,8 @@ function BrowseTasksContent() {
                       {task.category?.split(" ")[0] || "Task"}
                     </span>
                   </div>
-                </div> </Link>
+                </div>
+               </Link>
               );
             })}
           </div>
@@ -334,17 +317,5 @@ function BrowseTasksContent() {
 
       </div>
     </section>
-  );
-}
-
-export default function BrowseTasks() {
-  return (
-    <Suspense fallback={
-      <div className="max-w-7xl mx-auto px-6 py-12 text-xs font-bold tracking-widest text-black/40 uppercase">
-        Initializing Query Streams...
-      </div>
-    }>
-      <BrowseTasksContent />
-    </Suspense>
   );
 }

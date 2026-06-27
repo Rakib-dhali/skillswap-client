@@ -6,10 +6,9 @@ import { useEffect, useState } from "react";
 
 export default function DynamicTaskDetailsPage() {
   const { id } = useParams(); 
-  const {data: session} = authClient.useSession()
+  const { data: session } = authClient.useSession();
   
   const [task, setTask] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [submitLoading, setSubmitLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
@@ -22,16 +21,12 @@ export default function DynamicTaskDetailsPage() {
 
     const fetchTaskDetails = async () => {
       try {
-        await Promise.resolve();
-        setLoading(true);
         const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/tasks/${id}`);
         if (!res.ok) throw new Error("Task profile not found or server error.");
         const data = await res.json();
         setTask(data);
       } catch (err) {
         setError(err.message || "Something went wrong.");
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -43,7 +38,6 @@ export default function DynamicTaskDetailsPage() {
 
     const checkExistingProposal = async () => {
       try {
-        await Promise.resolve();
         if (!id || !session?.user?.email || session?.user?.role !== "freelancer") {
           if (active) setHasSubmitted(false);
           return;
@@ -109,14 +103,6 @@ export default function DynamicTaskDetailsPage() {
       setSubmitLoading(false);
     }
   };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#F5F5F5] flex items-center justify-center text-xs font-bold tracking-widest text-black/40 uppercase">
-        Loading Task Dynamics...
-      </div>
-    );
-  }
 
   if (error || !task) {
     return (

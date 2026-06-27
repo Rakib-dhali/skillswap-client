@@ -6,7 +6,6 @@ import { useEffect, useState } from "react";
 
 export default function ExpertNetwork() {
   const [freelancers, setFreelancers] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -21,21 +20,11 @@ export default function ExpertNetwork() {
         setFreelancers(onlyFreelancers);
       } catch (err) {
         setError(err.message || "Something went wrong.");
-      } finally {
-        setLoading(false);
       }
     };
 
     fetchFreelancers();
   }, []);
-
-  if (loading) {
-    return (
-      <div className="max-w-7xl mx-auto px-6 md:px-16 lg:px-24 py-12 text-xs font-bold tracking-widest text-black/40 uppercase">
-        Loading Expert Network...
-      </div>
-    );
-  }
 
   if (error) {
     return (
@@ -60,74 +49,80 @@ export default function ExpertNetwork() {
         </div>
 
         {/* Brutalist Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {freelancers.map((freelancer) => {
-            const firstLetter = freelancer.name ? freelancer.name.charAt(0).toUpperCase() : "?";
-            const freelancerId = freelancer._id?.$oid || freelancer._id || freelancer.id;
+        {freelancers.length === 0 ? (
+          <div className="bg-white border border-black/10 p-12 text-center text-sm font-semibold text-black/40 uppercase tracking-wider">
+            No active experts found in the network.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {freelancers.map((freelancer) => {
+              const firstLetter = freelancer.name ? freelancer.name.charAt(0).toUpperCase() : "?";
+              const freelancerId = freelancer._id?.$oid || freelancer._id || freelancer.id;
 
-            return (
-              <Link key={freelancerId} href={`/freelancers/${freelancerId}`}>
-              <div  
-                className="bg-white border border-black/10 p-6 shadow-sm hover:border-black/30 transition-colors duration-200 flex flex-col justify-between relative group"
-              >
-                {/* Upper Deck: Profile Meta & Rates */}
-                <div>
-                  <div className="flex items-start justify-between mb-4">
+              return (
+                <Link key={freelancerId} href={`/freelancers/${freelancerId}`}>
+                  <div className="bg-white border border-black/10 p-6 shadow-sm hover:border-black/30 transition-colors duration-200 flex flex-col justify-between relative h-full group">
                     
-                    {/* Avatar Logic Block */}
-                    {freelancer.image ? (
-                      <Image 
-                        src={freelancer.image} 
-                        alt={freelancer.name} 
-                        width={56}
-                        height={56}
-                        className="w-14 h-14 object-cover grayscale border border-black/10 rounded-none"
-                      />
-                    ) : (
-                      <div className="w-14 h-14 bg-black text-white flex items-center justify-center font-black text-xl rounded-none tracking-tighter">
-                        {firstLetter}
+                    {/* Upper Deck: Profile Meta & Rates */}
+                    <div>
+                      <div className="flex items-start justify-between mb-4">
+                        
+                        {/* Avatar Logic Block */}
+                        {freelancer.image ? (
+                          <Image 
+                            src={freelancer.image} 
+                            alt={freelancer.name} 
+                            width={56}
+                            height={56}
+                            className="w-14 h-14 object-cover grayscale border border-black/10 rounded-none"
+                          />
+                        ) : (
+                          <div className="w-14 h-14 bg-black text-white flex items-center justify-center font-black text-xl rounded-none tracking-tighter">
+                            {firstLetter}
+                          </div>
+                        )}
+
+                        {/* Price Tag Badge */}
+                        <span className="bg-black text-white text-[10px] font-black tracking-wider px-2 py-1 uppercase rounded-none">
+                          ${freelancer.rate || "0"}/hr
+                        </span>
                       </div>
-                    )}
 
-                    {/* Price Tag Badge */}
-                    <span className="bg-black text-white text-[10px] font-black tracking-wider px-2 py-1 uppercase rounded-none">
-                      ${freelancer.rate || "0"}/hr
-                    </span>
+                      {/* Identity Block */}
+                      <div className="mb-3">
+                        <h3 className="text-lg font-black tracking-tight text-black leading-snug">
+                          {freelancer.name}
+                        </h3>
+                        <p className="text-[10px] font-bold tracking-widest text-black/40 uppercase mt-0.5">
+                          {freelancer.title || "Full-Stack Architect"}
+                        </p>
+                      </div>
+
+                      {/* Professional Description */}
+                      <p className="text-xs text-black/70 leading-relaxed tracking-tight mb-6 line-clamp-3">
+                        {freelancer.description || "No description provided."}
+                      </p>
+                    </div>
+
+                    {/* Lower Deck: Brutalist Skill Badges */}
+                    <div className="flex flex-wrap gap-1.5 pt-4 border-t border-black/15">
+                      {freelancer.skills && freelancer.skills.map((skill, index) => (
+                        <span 
+                          key={index} 
+                          className="bg-[#F5F5F5] border border-black/5 text-black/60 text-[9px] font-bold tracking-wider uppercase px-2 py-1 rounded-none"
+                        >
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
+
                   </div>
-
-                  {/* Identity Block */}
-                  <div className="mb-3">
-                    <h3 className="text-lg font-black tracking-tight text-black leading-snug">
-                      {freelancer.name}
-                    </h3>
-                    <p className="text-[10px] font-bold tracking-widest text-black/40 uppercase mt-0.5">
-                      {freelancer.title || "Full-Stack Architect"}
-                    </p>
-                  </div>
-
-                  {/* Professional Description */}
-                  <p className="text-xs text-black/70 leading-relaxed tracking-tight mb-6 line-clamp-3">
-                    {freelancer.description || "No description provided."}
-                  </p>
-                </div>
-
-                {/* Lower Deck: Brutalist Skill Badges */}
-                <div className="flex flex-wrap gap-1.5 pt-4 border-t border-black/15">
-                  {freelancer.skills && freelancer.skills.map((skill, index) => (
-                    <span 
-                      key={index} 
-                      className="bg-[#F5F5F5] border border-black/5 text-black/60 text-[9px] font-bold tracking-wider uppercase px-2 py-1 rounded-none"
-                    >
-                      {skill}
-                    </span>
-                  ))}
-                </div>
-
-              </div></Link>
-            );
-          })}
-        </div>
-
+                </Link>
+              );
+            })}
+          </div>
+        )}
+        
       </div>
     </section>
   );
