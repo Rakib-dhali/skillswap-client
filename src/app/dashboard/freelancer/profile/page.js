@@ -115,13 +115,14 @@ export default function FreelancerProfilePage() {
         hourlyRate: Number(profile.hourlyRate),
       };
 
+      const tokenRes = await authClient.token();
       const res = await fetch(
         `${serverUrl}/api/freelancers/profile/${encodeURIComponent(user.email)}`,
         {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${await authClient.token()}`,
+            Authorization: `Bearer ${tokenRes?.data?.token}`,
           },
           body: JSON.stringify(payload),
         },

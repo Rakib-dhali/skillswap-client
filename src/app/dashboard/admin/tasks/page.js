@@ -36,9 +36,10 @@ export default function AdminTasksPage() {
   const updateStatus = async (taskId, status) => {
     setSavingId(taskId);
     try {
+      const tokenRes = await authClient.token();
       const res = await fetch(`${serverUrl}/api/tasks/${taskId}/status`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${await authClient.token()}` },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${tokenRes?.data?.token}` },
         body: JSON.stringify({ status }),
       });
       if (!res.ok) throw new Error("Unable to update task status.");

@@ -68,11 +68,12 @@ export default function ClientProposalsPage() {
   const handleStatusUpdate = async (proposalId, newStatus) => {
     setUpdatingId(proposalId);
     try {
+      const tokenRes = await authClient.token();
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_SERVER_URL}/api/proposals/${proposalId}/status`,
         {
           method: "PATCH",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${await authClient.token()}` },
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${tokenRes?.data?.token}` },
           body: JSON.stringify({ status: newStatus }),
         },
       );

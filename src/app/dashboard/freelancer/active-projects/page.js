@@ -50,9 +50,10 @@ export default function ActiveProjectsPage() {
 
     setSubmitting(true);
     try {
+      const tokenRes = await authClient.token();
       const res = await fetch(`${serverUrl}/api/tasks/${selectedProjectId}/deliverable`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${await authClient.token()}` },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${tokenRes?.data?.token}` },
         body: JSON.stringify({ deliverable_url: deliverableUrl }),
       });
       if (!res.ok) throw new Error("Failed to submit deliverable.");

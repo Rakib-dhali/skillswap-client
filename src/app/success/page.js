@@ -1,6 +1,8 @@
 import { stripe } from "@/lib/stripe";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 export default async function Success({ searchParams }) {
   const params = await searchParams;
@@ -41,12 +43,18 @@ export default async function Success({ searchParams }) {
     const serverUrl =
       process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:5000";
 
+    const tokenRes = await auth.api.getToken({
+      headers: await headers(),
+    });
+    const token = tokenRes?.token || "";
+
     // 1. Accept proposal
     if (proposalId) {
       await fetch(`${serverUrl}/api/proposals/${proposalId}/status`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           status: "accepted",
@@ -60,6 +68,7 @@ export default async function Success({ searchParams }) {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           status: "In Progress",
@@ -72,7 +81,7 @@ export default async function Success({ searchParams }) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${await authClient.token()}`,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
         payment: {

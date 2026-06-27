@@ -83,9 +83,13 @@ export default function DynamicTaskDetailsPage() {
     };
 
     try {
+      const tokenRes = await authClient.token();
       const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/proposals`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${tokenRes?.data?.token || ""}`,
+        },
         body: JSON.stringify(proposalPayload),
       });
 

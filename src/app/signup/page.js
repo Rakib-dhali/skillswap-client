@@ -62,11 +62,11 @@ export default function RegisterPage() {
 
     try {
       const { data, error } = await authClient.signUp.email({
+        name,
         email,
         password,
-        name,
+        image: finalPhotoUrl || undefined,
         accountType: selectedRole,
-        imageUrl: finalPhotoUrl || undefined,
         callbackURL: "/signin",
         rememberMe: true,
       });
@@ -90,7 +90,7 @@ export default function RegisterPage() {
         provider: "google",
       });
       if (data) {
-        await redirectByRole();
+        router.push("/dashboard");
       }
       if (error) {
         setErrorMsg(error.message);

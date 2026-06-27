@@ -53,11 +53,12 @@ export default function MyTasksPage() {
   const handleSaveEdit = async (taskId) => {
     setUpdating(true);
     try {
+      const tokenRes = await authClient.token();
       const res = await fetch(`${serverUrl}/api/tasks/${taskId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${await authClient.token()}`,
+          Authorization: `Bearer ${tokenRes?.data?.token}`,
         },
         body: JSON.stringify({ description: editDescription }),
       });
@@ -77,9 +78,10 @@ export default function MyTasksPage() {
   const handleDelete = async (taskId) => {
     if (!confirm("Are you sure you want to delete this task?")) return;
     try {
+      const tokenRes = await authClient.token();
       const res = await fetch(`${serverUrl}/api/tasks/${taskId}`, {
         method: "DELETE",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${await authClient.token()}` },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${tokenRes?.data?.token}` },
       });
       if (!res.ok) {
         const data = await res.json();
