@@ -30,15 +30,23 @@ export const auth = betterAuth({
   },
   user: {
     additionalFields: {
-      role: {
-        defaultValue: "client",
-      },
-      imageUrl: {
+      accountType: {
         type: "string",
-        required: true,
-        defaultValue: "",
-      },
+        defaultValue: "client",
+      }
     },
+  },
+  databaseHooks: {
+    user: {
+      create: {
+        before: async (user) => {
+          if (user.accountType && user.accountType !== "admin") {
+            user.role = user.accountType;
+          }
+          return { data: user };
+        }
+      }
+    }
   },
   session: {
     cookieCache: {

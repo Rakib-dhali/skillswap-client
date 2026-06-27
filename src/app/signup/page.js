@@ -65,7 +65,7 @@ export default function RegisterPage() {
         email,
         password,
         name,
-        role: selectedRole,
+        accountType: selectedRole,
         imageUrl: finalPhotoUrl || undefined,
         callbackURL: "/signin",
         rememberMe: true,
