@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { authClient } from "@/lib/auth-client";
 import Link from "next/link";
 import Image from "next/image";
-import { authClient } from "@/lib/auth-client";
+import logo from "@/assets/icon.png"
 
 // Import required React Icons
 import { 
@@ -12,14 +13,15 @@ import {
   LuClipboardList, 
   LuUsers, 
   LuCreditCard, 
-  LuGlobe, 
   LuBriefcase, 
   LuSearch, 
   LuInbox, 
   LuRocket, 
   LuDollarSign, 
   LuUser,
-  LuFileText
+  LuFileText,
+  LuMenu,  // Added for Hamburger Menu
+  LuX      // Added for Close Icon
 } from "react-icons/lu";
 
 export default function DashboardLayout({ children }) {
@@ -122,26 +124,28 @@ export default function DashboardLayout({ children }) {
     <div className="min-h-screen bg-[#F9F9F9] flex flex-col md:flex-row font-sans text-black antialiased">
       
       {/* Mobile Top Bar */}
-      <div className="md:hidden w-full bg-white border-b border-black/10 px-6 py-4 flex items-center justify-between z-40">
+      <div className="md:hidden fixed w-full bg-white border-b border-black/10 px-6 py-4 flex items-center justify-between z-40">
         <Link href="/">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-black flex items-center justify-center text-white text-xs font-black tracking-tighter">S</div>
-            <span className="font-black tracking-tighter text-sm uppercase">SkillSwap</span>
+            <Image src={logo} width={30} height={30} alt="logo" className="" />
+            <span className="font-black  tracking-tighter text-sm uppercase">SkillSwap</span>
           </div>
         </Link>
         <button 
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="w-8 h-8 flex flex-col items-center justify-center gap-1 border border-black/10 bg-white active:bg-black/5 cursor-pointer"
+          className="w-8 h-8 flex items-center justify-center border border-black/10 bg-white active:bg-black/5 cursor-pointer text-black overflow-hidden"
+          aria-label="Toggle Menu"
         >
-          <div className={`w-4 h-0.5 bg-black transition-all ${mobileMenuOpen ? "rotate-45 translate-y-1" : ""}`}></div>
-          <div className={`w-4 h-0.5 bg-black transition-all ${mobileMenuOpen ? "opacity-0" : ""}`}></div>
-          <div className={`w-4 h-0.5 bg-black transition-all ${mobileMenuOpen ? "-rotate-45 -translate-y-1" : ""}`}></div>
+          <div className="relative w-5 h-5 flex items-center justify-center">
+            <LuX className={`w-5 h-5 absolute transition-all duration-300 ${mobileMenuOpen ? "rotate-0 scale-100 opacity-100" : "rotate-90 scale-50 opacity-0"}`} />
+            <LuMenu className={`w-5 h-5 absolute transition-all duration-300 ${mobileMenuOpen ? "-rotate-90 scale-50 opacity-0" : "rotate-0 scale-100 opacity-100"}`} />
+          </div>
         </button>
       </div>
 
       {/* Sidebar Container */}
       <aside 
-        className={`fixed inset-y-0 left-0 w-64 bg-white border-r border-black/10 flex flex-col justify-between z-30 transform transition-transform duration-300 md:translate-x-0 md:static md:h-screen shrink-0 ${
+        className={`fixed inset-y-0 left-0 w-64 bg-white border-r mt-15 md:mt-0 border-black/10 flex flex-col justify-between z-30 transform transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:h-screen shrink-0 ${
           mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -150,15 +154,17 @@ export default function DashboardLayout({ children }) {
           <div className="mb-10 hidden md:block">
             <Link href="/" className="inline-block">
               <div className="flex items-center gap-3 mb-1">
-                <div className="w-8 h-8 bg-black text-white flex items-center justify-center font-black text-sm select-none tracking-tighter">S</div>
-                <h1 className="text-lg font-black tracking-tighter uppercase text-black">
-                  SkillSwap
-                </h1>
+                <Image src={logo} width={50} height={50} alt="logo" className="" />
+                <div className="flex-col">
+                  <h1 className="text-lg font-black tracking-tighter uppercase text-black">
+                    SkillSwap
+                  </h1>
+                  <p className="text-[9px] font-bold tracking-[0.2em] text-black/40 uppercase block ">
+                    {role} Dashboard
+                  </p>
+                </div>
               </div>
             </Link>
-            <span className="text-[9px] font-bold tracking-[0.2em] text-black/40 uppercase block pl-11">
-              {role} Dashboard
-            </span>
           </div>
 
           {/* Navigation Links */}
@@ -219,12 +225,12 @@ export default function DashboardLayout({ children }) {
       </aside>
 
       {/* Backdrop for Mobile Sidebar Drawer */}
-      {mobileMenuOpen && (
-        <div 
-          onClick={() => setMobileMenuOpen(false)}
-          className="fixed inset-0 bg-black/40 z-20 md:hidden transition-opacity"
-        />
-      )}
+      <div 
+        onClick={() => setMobileMenuOpen(false)}
+        className={`fixed inset-0 bg-black/40 z-20 md:hidden transition-opacity duration-300 ease-in-out ${
+          mobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        }`}
+      />
 
       {/* Main Content Area */}
       <main className="flex-1 h-screen overflow-y-auto px-6 md:px-12 py-8 flex flex-col justify-between">

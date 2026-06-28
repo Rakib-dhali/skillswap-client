@@ -2,12 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 function TopFreelancers() {
 
-  const router = useRouter();
   const [freelancers, setFreelancers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -25,8 +23,7 @@ function TopFreelancers() {
           .map((freelancer) => ({
             id: freelancer._id?.$oid || freelancer._id || freelancer.id,
             name: freelancer.name || "Freelancer",
-            avatarUrl: freelancer.image || freelancer.avatarUrl || "/default-avatar.png",
-            rating: Number(freelancer.rating || freelancer.averageRating || 4.8),
+            avatarUrl: freelancer.image,
             finishedJobs: Number(freelancer.finishedJobs || freelancer.completedJobs || 0),
             skills: Array.isArray(freelancer.skills)
               ? freelancer.skills
@@ -80,7 +77,7 @@ function TopFreelancers() {
                 <h3 className="text-lg font-bold text-black mb-1">{freelancer.name}</h3>
 
                 <div className="flex items-center justify-center gap-1 text-xs text-black/50 mb-6 font-normal">
-                  <span className="text-black font-bold">☆ {freelancer.rating.toFixed(1)}</span>
+                  <span className="text-black font-bold">☆5</span>
                   <span>({freelancer.finishedJobs} tasks)</span>
                 </div>
 
