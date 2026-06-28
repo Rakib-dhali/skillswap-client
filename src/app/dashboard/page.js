@@ -1,29 +1,17 @@
-"use client";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 
-import { authClient } from "@/lib/auth-client";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+export default async function DashboardPage() {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
-const DashboardPage = () => {
-  const router = useRouter();
-  const { data: session, isPending } = authClient.useSession();
+  if (!session?.user) {
+    redirect("/signin");
+  }
 
-  useEffect(() => {
-    if (!isPending) {
-      if (!session?.user) {
-        router.push("/signin");
-      } else {
-        const role = session.user.role || "client";
-        router.push(`/dashboard/${role}`);
-      }
-    }
-  }, [session, isPending, router]);
+  const role = session.user.role || "client";
+  redirect(`/dashboard/${role}`);
+}
 
-  return (
-    <div className="min-h-screen bg-[#F5F5F5] flex items-center justify-center text-xs font-bold tracking-widest text-black/40 uppercase">
-      Redirecting to Dashboard...
-    </div>
-  );
-};
-
-export default DashboardPage;

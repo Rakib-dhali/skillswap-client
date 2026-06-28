@@ -15,10 +15,7 @@ export default function ExpertNetwork() {
         const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/freelancers`);
         if (!res.ok) throw new Error("Failed to pull marketplace directory");
         const data = await res.json();
-        
-        // Filter out client profiles, leaving only users with the freelancer role
-        const onlyFreelancers = data.filter((user) => user.role === "freelancer");
-        setFreelancers();
+        setFreelancers(data);
       } catch (err) {
         setError(err.message || "Something went wrong.");
       }
