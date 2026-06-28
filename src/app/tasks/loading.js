@@ -15,7 +15,7 @@ export default function Loading() {
           <div className="w-full md:w-1/4 h-12 bg-black/5" />
           <div className="w-full md:w-1/5 h-12 bg-black/5" />
           <div className="w-full md:w-1/5 h-12 bg-black/5" />
-          <div className="w-full md:w-auto h-10 bg-black/10 w-24" />
+          <div className="w-full md:w-auto h-10 bg-black/10" />
         </div>
 
         {/* Active Filter Tags Skeleton placeholder */}

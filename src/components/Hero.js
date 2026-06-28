@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function HeroSection() {
   return (
-    <section className="bg-white flex items-center px-6 py-12 md:px-16 lg:px-24 select-none">
+    <section className="bg-white flex mt-10 items-center px-6 py-12 md:px-16 lg:px-24 select-none">
       <div className="max-w-7xl w-full flex flex-col justify-center">
         
         {/* Main Bold Headline */}

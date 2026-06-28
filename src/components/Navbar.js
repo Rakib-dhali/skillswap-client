@@ -1,13 +1,32 @@
 "use client"
 
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { authClient } from "@/lib/auth-client";
-import { useRouter, usePathname } from "next/navigation";
+import { motion, useMotionValueEvent, useScroll } from "motion/react"
+import { useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 
 const Navbar = () => {
   const router = useRouter();
   const pathname = usePathname();
+
+  // 1. Setup scroll tracking state
+  const { scrollY } = useScroll();
+  const [hidden, setHidden] = useState(false);
+
+  // 2. Event listener to check scroll direction
+  useMotionValueEvent(scrollY, "change", (latest) => {
+    const previous = scrollY.getPrevious() ?? 0;
+    
+    // Hide if scrolling down and past a small threshold (e.g., 150px)
+    if (latest > previous && latest > 150) {
+      setHidden(true);
+    } else {
+      setHidden(false);
+    }
+  });
 
   const { data: session, isPending } = authClient.useSession();
   const isLoggedIn = session?.user;
@@ -26,7 +45,6 @@ const Navbar = () => {
     }
   };
 
-  // Helper utility to make code cleaner
   const getLinkClass = (path) => {
     const baseClass = "hover:text-black transition-colors duration-200 cursor-pointer pb-1 border-b-2";
     const isActive = pathname === path;
@@ -35,8 +53,17 @@ const Navbar = () => {
   };
 
   return (
-    <header className="w-full bg-white border-b border-black/10 select-none sticky top-0 z-50">
-      <nav className="max-w-7xl mx-auto px-6 md:px-16 lg:px-24 h-15 flex flex-row items-center justify-between">
+    // 3. Swap <header> for <motion.header> and apply variants
+    <motion.header 
+      variants={{
+        visible: { y: 0 },
+        hidden: { y: "-100%" },
+      }}
+      animate={hidden ? "hidden" : "visible"}
+      transition={{ duration: 0.35, ease: "easeInOut" }}
+      className="w-full bg-transparent backdrop-blur-md border-b border-black/10 select-none fixed top-0 left-0 z-50"
+    >
+      <nav className="max-w-7xl mx-auto px-6 md:px-10 lg:px-16 h-15 flex flex-row items-center justify-between">
 
         {/* Logo */}
         <div>
@@ -114,7 +141,7 @@ const Navbar = () => {
         </div>
 
       </nav>
-    </header>
+    </motion.header>
   );
 };
 
