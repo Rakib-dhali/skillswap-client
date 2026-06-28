@@ -35,13 +35,13 @@ export default function ExpertNetwork() {
   }
 
   return (
-    <section className="w-full py-16 select-none font-sans">
+    <section className="w-full mt-10 md:mt-15 py-16 select-none font-sans">
       <div className="max-w-7xl mx-auto px-6 md:px-16 lg:px-24">
         
         {/* Section Header */}
         <div className="mb-12">
           <h2 className="text-4xl md:text-[44px] font-black tracking-tighter uppercase text-black leading-none mb-3">
-            Expert Network
+            Expert Freelancers
           </h2>
           <p className="text-sm font-medium text-black/50 tracking-tight">
             Connect with top-tier professionals for your next technical project.
@@ -84,7 +84,7 @@ export default function ExpertNetwork() {
 
                         {/* Price Tag Badge */}
                         <span className="bg-black text-white text-[10px] font-black tracking-wider px-2 py-1 uppercase rounded-none">
-                          ${freelancer.rate || "0"}/hr
+                          ${freelancer.hourlyRate || "0"}/hr
                         </span>
                       </div>
 

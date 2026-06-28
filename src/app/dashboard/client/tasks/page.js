@@ -191,7 +191,7 @@ export default function MyTasksPage() {
                   return (
                     <tr
                       key={task._id}
-                      className="hover:bg-black/[0.02] transition-colors duration-150"
+                      className="hover:bg-black/2 transition-colors duration-150"
                     >
                       <td className="py-4 pr-4 font-bold text-black uppercase tracking-tight max-w-xs truncate">
                         {task.title}

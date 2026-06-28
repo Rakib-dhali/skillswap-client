@@ -117,7 +117,7 @@ export default function DynamicTaskDetailsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#F5F5F5] py-12 select-none font-sans">
+    <main className="min-h-screen mt-10 bg-[#F5F5F5] py-12 select-none font-sans">
       <div className="max-w-7xl mx-auto px-6 md:px-16 lg:px-24">
         
         {/* Upper Architecture: Title Header & Tag Meta Segment */}

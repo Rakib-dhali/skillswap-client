@@ -45,7 +45,7 @@ export default function FreelancerDetailsPage() {
   const firstLetter = freelancer.name ? freelancer.name.charAt(0).toUpperCase() : "?";
 
   return (
-    <main className="min-h-screen py-12 select-none font-sans bg-[#F5F5F5]">
+    <main className="min-h-screen py-12 mt-10 md:mt-20 select-none font-sans bg-[#F5F5F5]">
       <div className="max-w-7xl mx-auto px-6 md:px-16 lg:px-24">
         
         {/* Upper Architecture: Identity Card Stack */}
@@ -79,7 +79,7 @@ export default function FreelancerDetailsPage() {
           {/* Pricing Highlight Tag */}
           <div className="bg-black text-white px-4 py-3 text-center rounded-none self-stretch sm:self-auto flex flex-col justify-center min-w-32">
             <span className="text-[8px] font-bold tracking-widest text-white/50 uppercase block mb-0.5">Hourly Rate</span>
-            <span className="text-lg font-black tracking-tighter">${freelancer.rate || "0"}/hr</span>
+            <span className="text-lg font-black tracking-tighter">${freelancer.hourlyRate || "0"}</span>
           </div>
         </div>
 

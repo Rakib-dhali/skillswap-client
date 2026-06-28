@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function BrowseTasks() {
   const router = useRouter();
@@ -17,7 +18,7 @@ export default function BrowseTasks() {
 
   // 2. Track the search string locally
   const [search, setSearch] = useState(urlSearch);
-  
+
   // 3. Sync state during render if browser's back/forward navigation alters URL
   const [prevUrlSearch, setPrevUrlSearch] = useState(urlSearch);
   if (urlSearch !== prevUrlSearch) {
@@ -40,12 +41,12 @@ export default function BrowseTasks() {
     "DevOps",
     "Legal",
     "Business & Finance",
-    "Marketing"
+    "Marketing",
   ];
 
   const updateUrlParams = (updates) => {
     const params = new URLSearchParams(searchParams.toString());
-    
+
     Object.entries(updates).forEach(([key, value]) => {
       if (value === "" || value === "All" || value === "All Categories") {
         params.delete(key);
@@ -65,14 +66,16 @@ export default function BrowseTasks() {
           category: urlCategory,
           minBudget: urlMinBudget,
           sortBy: urlSortBy,
-          page: urlPage.toString()
+          page: urlPage.toString(),
         });
 
-        const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/tasks?${queryParams}`);
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_SERVER_URL}/api/tasks?${queryParams}`,
+        );
         if (!res.ok) throw new Error("Failed to fetch tasks directory.");
-        
+
         const data = await res.json();
-        setTasks(data.tasks || []); 
+        setTasks(data.tasks || []);
         setTotalPages(data.pagination?.totalPages || 1);
       } catch (err) {
         setError(err.message);
@@ -88,7 +91,7 @@ export default function BrowseTasks() {
     updateUrlParams({
       search,
       minBudget: targetMinBudget,
-      page: 1 
+      page: 1,
     });
   };
 
@@ -110,7 +113,7 @@ export default function BrowseTasks() {
 
   const clearAllFilters = () => {
     setSearch("");
-    router.push("?"); 
+    router.push("?");
   };
 
   if (error) {
@@ -124,23 +127,38 @@ export default function BrowseTasks() {
   return (
     <section className="w-full bg-[#F5F5F5] min-h-screen py-16 font-sans select-none text-black">
       <div className="max-w-7xl mx-auto px-6 md:px-16 lg:px-24">
-        
         <div className="mb-10">
           <h1 className="text-4xl md:text-[44px] font-black tracking-tighter uppercase leading-none mb-3">
             Browse Tasks
           </h1>
           <p className="text-sm font-medium text-black/50 tracking-tight max-w-2xl">
-            Find micro-tasks that match your skills. Filter by category, set your budget range, and start working immediately.
+            Find micro-tasks that match your skills. Filter by category, set
+            your budget range, and start working immediately.
           </p>
         </div>
 
-        <form onSubmit={handleApplyFilters} className="bg-white border border-black/10 p-6 shadow-sm mb-6 flex flex-col md:flex-row gap-4 items-end">
+        <form
+          onSubmit={handleApplyFilters}
+          className="bg-white border border-black/10 p-6 shadow-sm mb-6 flex flex-col md:flex-row gap-4 items-end"
+        >
           <div className="w-full md:w-2/5 flex flex-col gap-1.5">
-            <label className="text-[10px] font-bold tracking-widest text-black/40 uppercase">Keywords</label>
+            <label className="text-[10px] font-bold tracking-widest text-black/40 uppercase">
+              Keywords
+            </label>
             <div className="relative w-full">
               <span className="absolute inset-y-0 left-3 flex items-center text-black/40">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
                 </svg>
               </span>
               <input
@@ -154,23 +172,36 @@ export default function BrowseTasks() {
           </div>
 
           <div className="w-full md:w-1/4 flex flex-col gap-1.5">
-            <label className="text-[10px] font-bold tracking-widest text-black/40 uppercase">Category</label>
+            <label className="text-[10px] font-bold tracking-widest text-black/40 uppercase">
+              Category
+            </label>
             <select
               value={urlCategory}
               onChange={(e) => handleCategoryChange(e.target.value)}
               className="w-full px-3 py-2 border border-black/20 font-medium text-sm rounded-none bg-white focus:outline-none focus:border-black/50 appearance-none cursor-pointer"
-              style={{ backgroundImage: "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"12\" height=\"12\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"3\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M19 9l-7 7-7-7\"/></svg>')", backgroundPosition: "calc(100% - 12px) center", backgroundRepeat: "no-repeat" }}
+              style={{
+                backgroundImage:
+                  'url(\'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>\')',
+                backgroundPosition: "calc(100% - 12px) center",
+                backgroundRepeat: "no-repeat",
+              }}
             >
               {categories.map((cat) => (
-                <option key={cat} value={cat}>{cat}</option>
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
               ))}
             </select>
           </div>
 
           <div className="w-full md:w-1/5 flex flex-col gap-1.5">
-            <label className="text-[10px] font-bold tracking-widest text-black/40 uppercase">Min Budget</label>
+            <label className="text-[10px] font-bold tracking-widest text-black/40 uppercase">
+              Min Budget
+            </label>
             <div className="relative w-full">
-              <span className="absolute inset-y-0 left-3 flex items-center text-black/40 text-sm font-medium">$</span>
+              <span className="absolute inset-y-0 left-3 flex items-center text-black/40 text-sm font-medium">
+                $
+              </span>
               <input
                 type="number"
                 name="minBudget"
@@ -183,7 +214,9 @@ export default function BrowseTasks() {
           </div>
 
           <div className="w-full md:w-1/5 flex flex-col gap-1.5">
-            <label className="text-[10px] font-bold tracking-widest text-black/40 uppercase">Sort By</label>
+            <label className="text-[10px] font-bold tracking-widest text-black/40 uppercase">
+              Sort By
+            </label>
             <select
               value={urlSortBy}
               onChange={(e) => handleSortChange(e.target.value)}
@@ -199,29 +232,53 @@ export default function BrowseTasks() {
             type="submit"
             className="w-full md:w-auto bg-black text-white px-6 py-2.5 font-bold text-xs uppercase tracking-wider rounded-none hover:bg-black/80 transition-colors flex items-center justify-center gap-2 whitespace-nowrap"
           >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+            <svg
+              className="w-3.5 h-3.5"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+              />
             </svg>
             Filter
           </button>
         </form>
 
         <div className="flex flex-wrap items-center gap-2 mb-8 min-h-6.5">
-          {(urlCategory !== "All" && urlCategory !== "All Categories") && (
+          {urlCategory !== "All" && urlCategory !== "All Categories" && (
             <span className="bg-white border border-black/10 text-black/70 text-[10px] font-bold font-mono px-2 py-1 flex items-center gap-1.5">
               {urlCategory}
-              <button type="button" onClick={clearCategoryFilter} className="hover:text-black font-black text-black/40">×</button>
+              <button
+                type="button"
+                onClick={clearCategoryFilter}
+                className="hover:text-black font-black text-black/40"
+              >
+                ×
+              </button>
             </span>
           )}
 
           {urlMinBudget && (
             <span className="bg-white border border-black/10 text-black/70 text-[10px] font-bold font-mono px-2 py-1 flex items-center gap-1.5">
               Budget: &gt; ${urlMinBudget}
-              <button type="button" onClick={clearBudgetFilter} className="hover:text-black font-black text-black/40">×</button>
+              <button
+                type="button"
+                onClick={clearBudgetFilter}
+                className="hover:text-black font-black text-black/40"
+              >
+                ×
+              </button>
             </span>
           )}
 
-          {((urlCategory !== "All" && urlCategory !== "All Categories") || urlMinBudget || urlSearch) && (
+          {((urlCategory !== "All" && urlCategory !== "All Categories") ||
+            urlMinBudget ||
+            urlSearch) && (
             <button
               onClick={clearAllFilters}
               className="text-[10px] font-bold font-mono tracking-tight text-black/40 underline decoration-dotted underline-offset-4 hover:text-black ml-1"
@@ -238,41 +295,70 @@ export default function BrowseTasks() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
             {tasks.map((task, index) => {
-              const letterCode = task.client_email ? task.client_email.charAt(0).toUpperCase() : "C";
-              const taskKey = task._id?.$oid || task._id || `task-fallback-key-${index}`;
+              // 1. Get client name from object structure or fallback to email parsing
+              const clientName =
+                task.client?.name ||
+                task.client_email?.split("@")[0] ||
+                "Client";
+
+              // 2. Extract first letter from name
+              const letterCode = clientName.charAt(0).toUpperCase();
+
+              // 3. Extract safe image URL
+              const clientImage = task.client?.image;
+
+              const taskKey =
+                task._id?.$oid || task._id || `task-fallback-key-${index}`;
 
               return (
-               <Link key={taskKey} href={`/tasks/${task._id}`}>
-                <div className="bg-white border border-black/10 p-6 shadow-sm hover:border-black/30 transition-colors duration-200 flex flex-col justify-between h-full">
-                  <div>
-                    <div className="flex items-start justify-between gap-4 mb-3">
-                      <h3 className="text-xl font-black tracking-tight text-black leading-snug hover:underline cursor-pointer">
-                        {task.title}
-                      </h3>
-                      <span className="bg-black text-white text-[10px] font-mono font-black tracking-wide px-2 py-0.5 whitespace-nowrap">
-                        ${task.budget} Fixed
-                      </span>
-                    </div>
-                    <p className="text-xs text-black/70 leading-relaxed tracking-tight mb-6 line-clamp-2">
-                      {task.description}
-                    </p>
-                  </div>
-
-                  <div className="flex items-center justify-between pt-4 border-t border-black/5">
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 bg-black text-white flex items-center justify-center font-black text-[10px]">
-                        {letterCode}
+                <Link
+                  key={taskKey}
+                  href={`/tasks/${task._id?.$oid || task._id}`}
+                >
+                  <div className="bg-white border border-black/10 p-6 shadow-sm hover:border-black/30 transition-colors duration-200 flex flex-col justify-between h-full">
+                    <div>
+                      <div className="flex items-start justify-between gap-4 mb-3">
+                        <h3 className="text-xl font-black tracking-tight text-black leading-snug hover:underline cursor-pointer">
+                          {task.title}
+                        </h3>
+                        <span className="bg-black text-white text-[10px] font-mono font-black tracking-wide px-2 py-0.5 whitespace-nowrap">
+                          ${task.budget} Fixed
+                        </span>
                       </div>
-                      <span className="text-xs font-black tracking-tight text-black truncate max-w-45">
-                        {task.client_email?.split("@")[0]}
+                      <p className="text-xs text-black/70 leading-relaxed tracking-tight mb-6 line-clamp-2">
+                        {task.description}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-4 border-t border-black/5">
+                      <div className="flex items-center gap-2.5">
+                        {/* Avatar Render Logic */}
+                        {clientImage ? (
+                          <Image
+                            width={24}
+                            height={24}
+                            src={clientImage}
+                            alt={clientName}
+                            className="w-6 h-6 object-cover bg-black/10 border border-black/10 shrink-0"
+                          />
+                        ) : (
+                          <div className="w-6 h-6 bg-black text-white flex items-center justify-center font-black text-[10px] shrink-0">
+                            {letterCode}
+                          </div>
+                        )}
+
+                        {/* Full Client Name */}
+                        <span className="text-xs font-black tracking-tight text-black truncate max-w-[180px]">
+                          {clientName}
+                        </span>
+                      </div>
+
+                      <span className="bg-[#F5F5F5] border border-black/5 text-black/50 text-[9px] font-bold tracking-widest uppercase px-2 py-0.5">
+                        {task.category?.split(" ")[0] || "Task"}
                       </span>
                     </div>
-                    <span className="bg-[#F5F5F5] border border-black/5 text-black/50 text-[9px] font-bold tracking-widest uppercase px-2 py-0.5">
-                      {task.category?.split(" ")[0] || "Task"}
-                    </span>
                   </div>
-                </div>
-               </Link>
+                </Link>
               );
             })}
           </div>
@@ -282,7 +368,9 @@ export default function BrowseTasks() {
           <div className="flex justify-center items-center gap-1.5 font-mono text-xs">
             <button
               disabled={urlPage === 1}
-              onClick={() => updateUrlParams({ page: Math.max(urlPage - 1, 1) })}
+              onClick={() =>
+                updateUrlParams({ page: Math.max(urlPage - 1, 1) })
+              }
               className="w-8 h-8 bg-white border border-black/10 flex items-center justify-center font-bold hover:bg-[#F5F5F5] disabled:opacity-30 disabled:pointer-events-none transition-colors"
             >
               &lt;
@@ -307,14 +395,15 @@ export default function BrowseTasks() {
 
             <button
               disabled={urlPage === totalPages}
-              onClick={() => updateUrlParams({ page: Math.min(urlPage + 1, totalPages) })}
+              onClick={() =>
+                updateUrlParams({ page: Math.min(urlPage + 1, totalPages) })
+              }
               className="w-8 h-8 bg-white border border-black/10 flex items-center justify-center font-bold hover:bg-[#F5F5F5] disabled:opacity-30 disabled:pointer-events-none transition-colors"
             >
               &gt;
             </button>
           </div>
         )}
-
       </div>
     </section>
   );

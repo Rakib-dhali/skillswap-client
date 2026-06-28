@@ -45,6 +45,7 @@ export default function PostTaskPage() {
       deadline: formData.get("deadline"),
       client_email: session.user.email,
       client_name: session.user.name,
+      client_image: session.user.image,
     };
 
     try {
