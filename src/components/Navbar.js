@@ -6,6 +6,7 @@ import Image from "next/image";
 import { authClient } from "@/lib/auth-client";
 import { motion, useMotionValueEvent, useScroll, AnimatePresence } from "motion/react"
 import { useRouter, usePathname } from "next/navigation";
+import logo from "@/assets/icon.png"
 
 const Navbar = () => {
   const router = useRouter();
@@ -76,9 +77,12 @@ const Navbar = () => {
             </button>
 
             <Link href="/">
+            <div className="flex items-center gap-2">
+              <Image src={logo} alt="logo" width={30} height={30} className="invert"/> 
               <h1 className="text-xl font-black tracking-tighter uppercase text-black">
                 SkillSwap
               </h1>
+              </div>
             </Link>
           </div>
 

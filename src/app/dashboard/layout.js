@@ -127,7 +127,7 @@ export default function DashboardLayout({ children }) {
       <div className="md:hidden fixed w-full bg-white border-b border-black/10 px-6 py-4 flex items-center justify-between z-40">
         <Link href="/">
           <div className="flex items-center gap-2">
-            <Image src={logo} width={30} height={30} alt="logo" className="" />
+            <Image src={logo} width={30} height={30} alt="logo" className="invert" />
             <span className="font-black  tracking-tighter text-sm uppercase">SkillSwap</span>
           </div>
         </Link>
@@ -154,7 +154,7 @@ export default function DashboardLayout({ children }) {
           <div className="mb-10 hidden md:block">
             <Link href="/" className="inline-block">
               <div className="flex items-center gap-3 mb-1">
-                <Image src={logo} width={50} height={50} alt="logo" className="" />
+                <Image src={logo} width={40} height={40} alt="logo" className="invert" />
                 <div className="flex-col">
                   <h1 className="text-lg font-black tracking-tighter uppercase text-black">
                     SkillSwap
