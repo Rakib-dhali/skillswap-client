@@ -9,15 +9,38 @@ export default function AdminTasksPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [savingId, setSavingId] = useState(null);
-  const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:5000";
+  const serverUrl =
+    process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:5000";
 
   useEffect(() => {
     let active = true;
     const fetchTasks = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`${serverUrl}/api/admin/tasks`);
-        if (!res.ok) throw new Error("Unable to load tasks.");
+        const tokenResponse = await authClient.token();
+
+        if (tokenResponse.error) {
+          throw new Error(
+            tokenResponse.error.message || "Failed to retrieve auth token.",
+          );
+        }
+
+        const token = tokenResponse.data?.token;
+
+        if (!token) {
+          throw new Error("Failed to retrieve auth token.");
+        }
+
+        const res = await fetch(`${serverUrl}/api/admin/tasks`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!res.ok) {
+          throw new Error("Unable to load tasks.");
+        }
+
         const data = await res.json();
         if (active) setTasks(data);
       } catch (err) {
@@ -39,12 +62,17 @@ export default function AdminTasksPage() {
       const tokenRes = await authClient.token();
       const res = await fetch(`${serverUrl}/api/tasks/${taskId}/status`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${tokenRes?.data?.token}` },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${tokenRes?.data?.token}`,
+        },
         body: JSON.stringify({ status }),
       });
       if (!res.ok) throw new Error("Unable to update task status.");
       setTasks((current) =>
-        current.map((task) => (task._id === taskId ? { ...task, status } : task)),
+        current.map((task) =>
+          task._id === taskId ? { ...task, status } : task,
+        ),
       );
     } catch (err) {
       console.error(err);
@@ -61,6 +89,10 @@ export default function AdminTasksPage() {
     try {
       const res = await fetch(`${serverUrl}/api/tasks/${taskId}`, {
         method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${tokenRes?.data?.token}`,
+        },
       });
       if (!res.ok) {
         const json = await res.json();
@@ -119,13 +151,19 @@ export default function AdminTasksPage() {
               ))
             ) : tasks.length === 0 ? (
               <tr>
-                <td colSpan="5" className="py-8 text-center text-sm text-black/50">
+                <td
+                  colSpan="5"
+                  className="py-8 text-center text-sm text-black/50"
+                >
                   No tasks available.
                 </td>
               </tr>
             ) : (
               tasks.map((task) => (
-                <tr key={task._id} className="hover:bg-black/2 transition-colors">
+                <tr
+                  key={task._id}
+                  className="hover:bg-black/2 transition-colors"
+                >
                   <td className="py-4 px-3 font-bold text-black uppercase tracking-tight text-xs max-w-xs truncate">
                     {task.title}
                   </td>
@@ -138,7 +176,9 @@ export default function AdminTasksPage() {
                   <td className="py-4 px-3 text-xs uppercase tracking-widest">
                     <select
                       value={task.status || "open"}
-                      onChange={(event) => updateStatus(task._id, event.target.value)}
+                      onChange={(event) =>
+                        updateStatus(task._id, event.target.value)
+                      }
                       disabled={savingId === task._id}
                       className="border border-black/10 px-2 py-1 text-[10px] uppercase tracking-widest"
                     >

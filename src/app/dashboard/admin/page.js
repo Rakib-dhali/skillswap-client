@@ -30,41 +30,68 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     let active = true;
-    const fetchOverview = async () => {
-      try {
-        setLoading(true);
-        const [overviewRes, activityRes] = await Promise.all([
-          fetch(`${serverUrl}/api/admin/overview`),
-          fetch(`${serverUrl}/api/admin/activity`),
-        ]);
+   const fetchOverview = async () => {
+  try {
+    setLoading(true);
 
-        if (!overviewRes.ok) throw new Error("Unable to load overview data.");
-        if (!activityRes.ok) throw new Error("Unable to load activity feed.");
+    // Get auth token
+    const tokenResponse = await authClient.token();
 
-        const overviewData = await overviewRes.json();
-        const activityData = await activityRes.json();
+    if (tokenResponse.error) {
+      throw new Error(
+        tokenResponse.error.message || "Failed to retrieve auth token."
+      );
+    }
 
-        if (!active) return;
-        setStats({
-          totalUsers: overviewData.totalUsers?.toLocaleString() ?? "0",
-          totalTasks: overviewData.totalTasks?.toLocaleString() ?? "0",
-          totalRevenue: `$${overviewData.totalRevenue?.toLocaleString() ?? "0"}`,
-          activeTasks: overviewData.activeTasks?.toLocaleString() ?? "0",
-        });
-        setActivities(
-          activityData.map((activity) => ({
-            ...activity,
-            time: formatRelativeTime(activity.timestamp),
-          })),
-        );
-      } catch (err) {
-        if (!active) return;
-        setError(err.message || "Failed to load admin dashboard data.");
-      } finally {
-        if (!active) return;
-        setLoading(false);
-      }
-    };
+    const token = tokenResponse.data?.token;
+
+    if (!token) {
+      throw new Error("Failed to retrieve auth token.");
+    }
+
+    // Fetch protected routes
+    const [overviewRes, activityRes] = await Promise.all([
+      fetch(`${serverUrl}/api/admin/overview`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }),
+      fetch(`${serverUrl}/api/admin/activity`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }),
+    ]);
+
+    if (!overviewRes.ok) throw new Error("Unable to load overview data.");
+    if (!activityRes.ok) throw new Error("Unable to load activity feed.");
+
+    const overviewData = await overviewRes.json();
+    const activityData = await activityRes.json();
+
+    if (!active) return;
+
+    setStats({
+      totalUsers: overviewData.totalUsers?.toLocaleString() ?? "0",
+      totalTasks: overviewData.totalTasks?.toLocaleString() ?? "0",
+      totalRevenue: `$${overviewData.totalRevenue?.toLocaleString() ?? "0"}`,
+      activeTasks: overviewData.activeTasks?.toLocaleString() ?? "0",
+    });
+
+    setActivities(
+      activityData.map((activity) => ({
+        ...activity,
+        time: formatRelativeTime(activity.timestamp),
+      }))
+    );
+  } catch (err) {
+    if (!active) return;
+    setError(err.message || "Failed to load admin dashboard data.");
+  } finally {
+    if (!active) return;
+    setLoading(false);
+  }
+};
 
     fetchOverview();
     return () => {

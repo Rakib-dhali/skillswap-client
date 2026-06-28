@@ -8,6 +8,7 @@ export default function ExpertNetwork() {
   const [freelancers, setFreelancers] = useState([]);
   const [error, setError] = useState("");
 
+  // Fetch freelancer listings from the backend on component mount.
   useEffect(() => {
     const fetchFreelancers = async () => {
       try {
@@ -17,7 +18,7 @@ export default function ExpertNetwork() {
         
         // Filter out client profiles, leaving only users with the freelancer role
         const onlyFreelancers = data.filter((user) => user.role === "freelancer");
-        setFreelancers(onlyFreelancers);
+        setFreelancers();
       } catch (err) {
         setError(err.message || "Something went wrong.");
       }

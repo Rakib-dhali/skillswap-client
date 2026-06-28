@@ -18,28 +18,80 @@ export default function ClientDashboard() {
   const [loadingTasks, setLoadingTasks] = useState(true);
 
   useEffect(() => {
-    if (user?.email) {
-      const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
-      
-      // Fetch Stats
-      fetch(`${serverUrl}/api/client/stats/${encodeURIComponent(user.email)}`)
-        .then((res) => res.json())
-        .then((data) => setStats(data))
-        .catch(console.error);
+  if (!user?.email) return;
 
-      // Fetch Tasks
-      fetch(`${serverUrl}/api/tasks/client/${encodeURIComponent(user.email)}`)
-        .then((res) => res.json())
-        .then((data) => {
-          setRecentTasks(data.slice(0, 5));
-          setLoadingTasks(false);
-        })
-        .catch((err) => {
-          console.error(err);
-          setLoadingTasks(false);
-        });
+  let active = true;
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoadingTasks(true);
+
+      const serverUrl =
+        process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:5000";
+
+      // Get auth token
+      const tokenResponse = await authClient.token();
+
+      if (tokenResponse.error) {
+        throw new Error(
+          tokenResponse.error.message || "Failed to retrieve auth token."
+        );
+      }
+
+      const token = tokenResponse.data?.token;
+
+      if (!token) {
+        throw new Error("Failed to retrieve auth token.");
+      }
+
+      const headers = {
+        Authorization: `Bearer ${token}`,
+      };
+
+      // Fetch both endpoints concurrently
+      const [statsRes, tasksRes] = await Promise.all([
+        fetch(
+          `${serverUrl}/api/client/stats/${encodeURIComponent(user.email)}`,
+          { headers }
+        ),
+        fetch(
+          `${serverUrl}/api/tasks/client/${encodeURIComponent(user.email)}`,
+          { headers }
+        ),
+      ]);
+
+      if (!statsRes.ok) {
+        throw new Error("Failed to fetch stats.");
+      }
+
+      if (!tasksRes.ok) {
+        throw new Error("Failed to fetch tasks.");
+      }
+
+      const [statsData, tasksData] = await Promise.all([
+        statsRes.json(),
+        tasksRes.json(),
+      ]);
+
+      if (!active) return;
+
+      setStats(statsData);
+      setRecentTasks(tasksData.slice(0, 5));
+    } catch (error) {
+      console.error(error);
+    } finally {
+      if (active) {
+        setLoadingTasks(false);
+      }
     }
-  }, [user?.email]);
+  };
+
+  fetchDashboardData();
+
+  return () => {
+    active = false;
+  };
+}, [user?.email]);
 
   return (
     <div className="space-y-10 select-none">

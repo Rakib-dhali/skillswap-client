@@ -17,8 +17,26 @@ export default function FreelancerProposalsPage() {
 
     const fetchProposals = async () => {
       try {
+        const tokenRes = await authClient.token();
+
+        if (tokenRes.error) {
+          throw new Error(
+            tokenRes.error.message || "Failed to retrieve auth token.",
+          );
+        }
+
+        const token = tokenRes.data?.token;
+
+        if (!token) {
+          throw new Error("Failed to retrieve auth token.");
+        }
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_SERVER_URL}/api/proposals/freelancer/${encodeURIComponent(user.email)}`
+          `${process.env.NEXT_PUBLIC_SERVER_URL}/api/proposals/freelancer/${encodeURIComponent(user.email)}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
         );
         if (!res.ok) throw new Error("Failed to load proposals.");
         const data = await res.json();

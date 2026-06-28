@@ -32,8 +32,26 @@ export default function FreelancerProfilePage() {
     const fetchProfile = async () => {
       try {
         setLoading(true);
+        const tokenRes = await authClient.token();
+
+        if (tokenRes.error) {
+          throw new Error(
+            tokenRes.error.message || "Failed to retrieve auth token.",
+          );
+        }
+
+        const token = tokenRes.data?.token;
+
+        if (!token) {
+          throw new Error("Failed to retrieve auth token.");
+        }
         const res = await fetch(
           `${serverUrl}/api/freelancers/profile/${encodeURIComponent(user.email)}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
         );
         if (!res.ok) throw new Error("Failed to load profile.");
         const data = await res.json();
@@ -116,13 +134,25 @@ export default function FreelancerProfilePage() {
       };
 
       const tokenRes = await authClient.token();
+
+        if (tokenRes.error) {
+          throw new Error(
+            tokenRes.error.message || "Failed to retrieve auth token.",
+          );
+        }
+
+        const token = tokenRes.data?.token;
+
+        if (!token) {
+          throw new Error("Failed to retrieve auth token.");
+        }
       const res = await fetch(
         `${serverUrl}/api/freelancers/profile/${encodeURIComponent(user.email)}`,
         {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${tokenRes?.data?.token}`,
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify(payload),
         },

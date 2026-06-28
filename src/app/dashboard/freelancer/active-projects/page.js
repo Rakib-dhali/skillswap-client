@@ -15,7 +15,8 @@ export default function ActiveProjectsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:5000";
+  const serverUrl =
+    process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:5000";
 
   useEffect(() => {
     if (!user?.email) return;
@@ -24,19 +25,49 @@ export default function ActiveProjectsPage() {
     const fetchProjects = async () => {
       try {
         setLoading(true);
+
+        const tokenResponse = await authClient.token();
+
+        if (tokenResponse.error) {
+          throw new Error(
+            tokenResponse.error.message || "Failed to retrieve auth token.",
+          );
+        }
+
+        const token = tokenResponse.data?.token;
+
+        if (!token) {
+          throw new Error("Failed to retrieve auth token.");
+        }
+
         const res = await fetch(
-          `${serverUrl}/api/freelancer/active-projects/${encodeURIComponent(user.email)}`
+          `${serverUrl}/api/freelancer/active-projects/${encodeURIComponent(user.email)}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
         );
-        if (!res.ok) throw new Error("Failed to load projects.");
+
+        if (!res.ok) {
+          throw new Error("Failed to load projects.");
+        }
+
         const data = await res.json();
-        if (active) setProjects(data);
+
+        if (active) {
+          setProjects(data);
+        }
       } catch (err) {
-        if (active) setError(err.message);
+        if (active) {
+          setError(err.message);
+        }
       } finally {
-        if (active) setLoading(false);
+        if (active) {
+          setLoading(false);
+        }
       }
     };
-
     fetchProjects();
 
     return () => {
@@ -51,11 +82,17 @@ export default function ActiveProjectsPage() {
     setSubmitting(true);
     try {
       const tokenRes = await authClient.token();
-      const res = await fetch(`${serverUrl}/api/tasks/${selectedProjectId}/deliverable`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${tokenRes?.data?.token}` },
-        body: JSON.stringify({ deliverable_url: deliverableUrl }),
-      });
+      const res = await fetch(
+        `${serverUrl}/api/tasks/${selectedProjectId}/deliverable`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${tokenRes?.data?.token}`,
+          },
+          body: JSON.stringify({ deliverable_url: deliverableUrl }),
+        },
+      );
       if (!res.ok) throw new Error("Failed to submit deliverable.");
 
       setSelectedProjectId(null);
@@ -135,20 +172,29 @@ export default function ActiveProjectsPage() {
                 <tr className="border-b border-black/10 text-[9px] font-bold tracking-widest text-black/40 uppercase">
                   <th className="pb-3 pr-4 font-black">Project Name</th>
                   <th className="pb-3 px-4 font-black">Category</th>
-                  <th className="pb-3 px-4 font-black text-right">Agreed Budget</th>
+                  <th className="pb-3 px-4 font-black text-right">
+                    Agreed Budget
+                  </th>
                   <th className="pb-3 px-4 font-black text-center">Duration</th>
                   <th className="pb-3 px-4 font-black text-center">Status</th>
-                  <th className="pb-3 pl-4 font-black text-center">Deliverable</th>
+                  <th className="pb-3 pl-4 font-black text-center">
+                    Deliverable
+                  </th>
                   <th className="pb-3 pl-4 font-black text-center">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-black/5 text-xs">
                 {projects.map((project) => {
-                  const isInProgress = project.status?.toLowerCase() === "in progress";
-                  const isCompleted = project.status?.toLowerCase() === "completed";
+                  const isInProgress =
+                    project.status?.toLowerCase() === "in progress";
+                  const isCompleted =
+                    project.status?.toLowerCase() === "completed";
 
                   return (
-                    <tr key={project._id} className="hover:bg-black/[0.02] transition-colors duration-150">
+                    <tr
+                      key={project._id}
+                      className="hover:bg-black/[0.02] transition-colors duration-150"
+                    >
                       <td className="py-4 pr-4 font-bold text-black uppercase tracking-tight max-w-xs truncate">
                         {project.title}
                       </td>
@@ -162,19 +208,21 @@ export default function ActiveProjectsPage() {
                         {project.estimated_days} days
                       </td>
                       <td className="py-4 px-4 text-center">
-                        <span className={`inline-block px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider border ${
-                          isCompleted
-                            ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                            : "bg-blue-50 text-blue-700 border-blue-200"
-                        }`}>
+                        <span
+                          className={`inline-block px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider border ${
+                            isCompleted
+                              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                              : "bg-blue-50 text-blue-700 border-blue-200"
+                          }`}
+                        >
                           {project.status}
                         </span>
                       </td>
                       <td className="py-4 pl-4 text-center max-w-[150px] truncate text-black/50 font-mono text-[10px]">
                         {project.deliverable_url ? (
-                          <a 
-                            href={project.deliverable_url} 
-                            target="_blank" 
+                          <a
+                            href={project.deliverable_url}
+                            target="_blank"
                             rel="noopener noreferrer"
                             className="underline text-blue-600 font-bold uppercase tracking-wider text-[9px] hover:text-blue-800"
                           >
@@ -218,7 +266,8 @@ export default function ActiveProjectsPage() {
             <form onSubmit={handleSubmitDeliverable} className="space-y-6">
               <div className="flex flex-col gap-1.5">
                 <label className="text-[10px] font-bold tracking-widest text-black/60 uppercase">
-                  Deliverable URL (e.g. GitHub link, Figma preview, deployed site)
+                  Deliverable URL (e.g. GitHub link, Figma preview, deployed
+                  site)
                 </label>
                 <input
                   type="url"

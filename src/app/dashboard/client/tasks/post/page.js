@@ -13,16 +13,17 @@ export default function PostTaskPage() {
   const [error, setError] = useState("");
 
   const categories = [
-    "Web Development",
-    "Design & Creative",
-    "Writing & Translation",
+    "Development",
+    "Design",
+    "Writing",
+    "Marketing",
     "Data Science",
     "Cybersecurity",
     "DevOps",
     "Legal",
     "Business & Finance",
-    "Marketing",
   ];
+  // Design,Writing, Development, Marketing, or Other.
 
   const handleSubmit = async (e) => {
     e.preventDefault();

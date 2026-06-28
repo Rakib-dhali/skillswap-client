@@ -11,7 +11,8 @@ export default function EarningsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:5000";
+  const serverUrl =
+    process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:5000";
 
   useEffect(() => {
     if (!user?.email) return;
@@ -20,8 +21,26 @@ export default function EarningsPage() {
     const fetchEarnings = async () => {
       try {
         setLoading(true);
+        const tokenResponse = await authClient.token();
+
+        if (tokenResponse.error) {
+          throw new Error(
+            tokenResponse.error.message || "Failed to retrieve auth token.",
+          );
+        }
+
+        const token = tokenResponse.data?.token;
+
+        if (!token) {
+          throw new Error("Failed to retrieve auth token.");
+        }
         const res = await fetch(
-          `${serverUrl}/api/earnings/freelancer/${encodeURIComponent(user.email)}`
+          `${serverUrl}/api/earnings/freelancer/${encodeURIComponent(user.email)}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
         );
         if (!res.ok) throw new Error("Failed to load earnings history.");
         const data = await res.json();
@@ -40,19 +59,26 @@ export default function EarningsPage() {
     };
   }, [user?.email, serverUrl]);
 
-  const totalEarningsAmount = earnings.reduce((sum, item) => sum + (item.amount || 0), 0);
+  const totalEarningsAmount = earnings.reduce(
+    (sum, item) => sum + (item.amount || 0),
+    0,
+  );
 
   const formatDate = (dateStr) => {
     if (!dateStr) return "—";
     const d = new Date(dateStr);
-    return d.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    }) + " " + d.toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit"
-    });
+    return (
+      d.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      }) +
+      " " +
+      d.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    );
   };
 
   if (loading) {
@@ -133,16 +159,22 @@ export default function EarningsPage() {
                   <th className="pb-3 pr-4 font-black">Transaction ID</th>
                   <th className="pb-3 px-4 font-black">Project / Task</th>
                   <th className="pb-3 px-4 font-black">Client Email</th>
-                  <th className="pb-3 px-4 font-black text-right">Amount Paid</th>
+                  <th className="pb-3 px-4 font-black text-right">
+                    Amount Paid
+                  </th>
                   <th className="pb-3 px-4 font-black text-center">Status</th>
                   <th className="pb-3 pl-4 font-black text-right">Paid At</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-black/5 text-xs">
                 {earnings.map((earning) => (
-                  <tr key={earning._id} className="hover:bg-black/[0.02] transition-colors duration-150">
+                  <tr
+                    key={earning._id}
+                    className="hover:bg-black/[0.02] transition-colors duration-150"
+                  >
                     <td className="py-4 pr-4 font-mono font-bold text-black uppercase tracking-wider text-[10px]">
-                      {earning.transaction_id || `txn_${earning._id.slice(0, 10)}`}
+                      {earning.transaction_id ||
+                        `txn_${earning._id.slice(0, 10)}`}
                     </td>
                     <td className="py-4 px-4 font-bold text-black uppercase tracking-tight max-w-xs truncate">
                       {earning.task_title}

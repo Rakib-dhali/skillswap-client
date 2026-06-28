@@ -17,10 +17,10 @@ export default function AdminUsersPage() {
         setLoading(true);
         const { data, error } = await authClient.admin.listUsers({
           query: {
-            limit: 200,
+            limit: 50,
             offset: 0,
             sortBy: "name",
-            sortDirection: "asc",
+            sortDirection: "asc"
           },
         });
 

@@ -19,8 +19,25 @@ export default function ClientProposalsPage() {
 
     const fetchProposals = async () => {
       try {
+        const tokenResponse = await authClient.token();
+
+        if (tokenResponse.error) {
+          throw new Error(
+            tokenResponse.error.message || "Failed to retrieve auth token.",
+          );
+        }
+
+        const token = tokenResponse.data?.token;
+
+        if (!token) {
+          throw new Error("Failed to retrieve auth token.");
+        }
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_SERVER_URL}/api/proposals/client/${encodeURIComponent(user.email)}`,
+          `${process.env.NEXT_PUBLIC_SERVER_URL}/api/proposals/client/${encodeURIComponent(user.email)}`,{
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
         );
         if (!res.ok) throw new Error("Failed to load proposals.");
         const data = await res.json();
@@ -35,45 +52,55 @@ export default function ClientProposalsPage() {
     fetchProposals();
   }, [user?.email]);
 
-  // Redirect to dummy Stripe checkout page
- const handleAcceptWithPayment = async (e, proposal) => {
-  e.preventDefault();
+  // Redirect to Stripe checkout page
+  const handleAcceptWithPayment = async (e, proposal) => {
+    e.preventDefault();
 
-  try {
-    const formData = new FormData();
+    try {
+      const formData = new FormData();
 
-    formData.append("price", proposal.proposed_budget);
-    formData.append("title", proposal.task_title);
-    formData.append("taskId", proposal._id); // proposal id
-    formData.append("actualTaskId", proposal.task_id); // task id
-    formData.append("freelancerEmail", proposal.freelancer_email);
+      formData.append("price", proposal.proposed_budget);
+      formData.append("title", proposal.task_title);
+      formData.append("taskId", proposal._id); // proposal id
+      formData.append("actualTaskId", proposal.task_id); // task id
+      formData.append("freelancerEmail", proposal.freelancer_email);
 
-    const response = await fetch("/api/payment", {
-      method: "POST",
-      body: formData,
-    });
+      const response = await fetch("/api/payment", {
+        method: "POST",
+        body: formData,
+      });
 
-    const data = await response.json();
+      const data = await response.json();
 
-    if (!response.ok) {
-      throw new Error(data.error || "Failed to create checkout session");
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to create checkout session");
+      }
+
+      window.location.assign(data.url);
+    } catch (error) {
+      alert(error.message);
     }
-
-    window.location.assign(data.url);
-  } catch (error) {
-    alert(error.message);
-  }
-};
+  };
   // Standard reject updates remain direct REST calls
   const handleStatusUpdate = async (proposalId, newStatus) => {
     setUpdatingId(proposalId);
     try {
-      const tokenRes = await authClient.token();
+      const tokenResponse = await authClient.token();
+
+        if (tokenResponse.error) {
+          throw new Error(
+            tokenResponse.error.message || "Failed to retrieve auth token.",
+          );
+        }
+        const token = tokenRes?.data?.token
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_SERVER_URL}/api/proposals/${proposalId}/status`,
         {
           method: "PATCH",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${tokenRes?.data?.token}` },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
           body: JSON.stringify({ status: newStatus }),
         },
       );
@@ -104,7 +131,7 @@ export default function ClientProposalsPage() {
 
   // Check which task_ids already have an accepted proposal
   const tasksWithAccepted = new Set(
-    proposals.filter((p) => p.status === "accepted").map((p) => p.task_id)
+    proposals.filter((p) => p.status === "accepted").map((p) => p.task_id),
   );
 
   const getStatusStyle = (status) => {
@@ -144,7 +171,10 @@ export default function ClientProposalsPage() {
         <div className="h-4 w-56 bg-black/5 animate-pulse mb-8" />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="bg-white border border-black/10 p-6 min-h-28 animate-pulse" />
+            <div
+              key={i}
+              className="bg-white border border-black/10 p-6 min-h-28 animate-pulse"
+            />
           ))}
         </div>
       </div>
@@ -174,33 +204,55 @@ export default function ClientProposalsPage() {
       {/* Summary Stats Row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="bg-white border border-black/10 p-6 flex flex-col justify-between min-h-28">
-          <span className="text-[9px] font-bold tracking-widest text-black/40 uppercase">Total Received</span>
-          <span className="text-3xl font-black text-black tracking-tighter mt-2">{stats.total}</span>
+          <span className="text-[9px] font-bold tracking-widest text-black/40 uppercase">
+            Total Received
+          </span>
+          <span className="text-3xl font-black text-black tracking-tighter mt-2">
+            {stats.total}
+          </span>
         </div>
         <div className="bg-white border border-black/10 p-6 flex flex-col justify-between min-h-28">
-          <span className="text-[9px] font-bold tracking-widest text-black/40 uppercase">Pending Review</span>
-          <span className="text-3xl font-black text-amber-600 tracking-tighter mt-2">{stats.pending}</span>
+          <span className="text-[9px] font-bold tracking-widest text-black/40 uppercase">
+            Pending Review
+          </span>
+          <span className="text-3xl font-black text-amber-600 tracking-tighter mt-2">
+            {stats.pending}
+          </span>
         </div>
         <div className="bg-white border border-black/10 p-6 flex flex-col justify-between min-h-28">
-          <span className="text-[9px] font-bold tracking-widest text-black/40 uppercase">Accepted</span>
-          <span className="text-3xl font-black text-emerald-600 tracking-tighter mt-2">{stats.accepted}</span>
+          <span className="text-[9px] font-bold tracking-widest text-black/40 uppercase">
+            Accepted
+          </span>
+          <span className="text-3xl font-black text-emerald-600 tracking-tighter mt-2">
+            {stats.accepted}
+          </span>
         </div>
         <div className="bg-black text-white p-6 flex flex-col justify-between min-h-28">
-          <span className="text-[9px] font-bold tracking-widest text-white/50 uppercase">Rejected</span>
-          <span className="text-3xl font-black text-white tracking-tighter mt-2">{stats.rejected}</span>
+          <span className="text-[9px] font-bold tracking-widest text-white/50 uppercase">
+            Rejected
+          </span>
+          <span className="text-3xl font-black text-white tracking-tighter mt-2">
+            {stats.rejected}
+          </span>
         </div>
       </div>
 
       {/* Proposals Table Card */}
       <div className="bg-white border border-black/10 p-8 shadow-sm">
         <div className="flex items-center justify-between border-b border-black/10 pb-4 mb-6">
-          <h2 className="text-sm font-black tracking-widest text-black uppercase">All Received Bids</h2>
-          <span className="text-[9px] font-bold tracking-widest text-black/40 uppercase">{stats.total} Total</span>
+          <h2 className="text-sm font-black tracking-widest text-black uppercase">
+            All Received Bids
+          </h2>
+          <span className="text-[9px] font-bold tracking-widest text-black/40 uppercase">
+            {stats.total} Total
+          </span>
         </div>
 
         {proposals.length === 0 ? (
           <div className="bg-[#EAEAEA] border border-black/5 p-12 text-center flex flex-col items-center justify-center min-h-60">
-            <span className="text-[10px] font-bold tracking-[0.2em] text-black uppercase block mb-1">No Proposals Received</span>
+            <span className="text-[10px] font-bold tracking-[0.2em] text-black uppercase block mb-1">
+              No Proposals Received
+            </span>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -219,30 +271,51 @@ export default function ClientProposalsPage() {
               </thead>
               <tbody className="divide-y divide-black/5 text-xs">
                 {proposals.map((p) => {
-                  const isPending = p.status === "pending" || p.status === "open";
+                  const isPending =
+                    p.status === "pending" || p.status === "open";
                   const isUpdating = updatingId === p._id;
                   const taskAlreadyAccepted = tasksWithAccepted.has(p.task_id);
 
                   return (
-                    <tr key={p._id} className="hover:bg-black/[0.02] transition-colors duration-150">
+                    <tr
+                      key={p._id}
+                      className="hover:bg-black/[0.02] transition-colors duration-150"
+                    >
                       <td className="py-4 pr-4 font-bold text-black uppercase tracking-tight max-w-xs truncate">
                         {p.task_title}
                       </td>
                       <td className="py-4 px-4">
-                        <span className="block font-bold text-black">{p.freelancer_name || "Anonymous"}</span>
-                        <span className="block text-[9px] text-black/40 mt-0.5">{p.freelancer_email}</span>
+                        <span className="block font-bold text-black">
+                          {p.freelancer_name || "Anonymous"}
+                        </span>
+                        <span className="block text-[9px] text-black/40 mt-0.5">
+                          {p.freelancer_email}
+                        </span>
                       </td>
-                      <td className="py-4 px-4 font-black text-black text-right">${p.proposed_budget}</td>
-                      <td className="py-4 px-4 text-black/70 text-center font-bold">{p.estimated_days}</td>
+                      <td className="py-4 px-4 font-black text-black text-right">
+                        ${p.proposed_budget}
+                      </td>
+                      <td className="py-4 px-4 text-black/70 text-center font-bold">
+                        {p.estimated_days}
+                      </td>
                       <td className="py-4 px-4 text-black/60 max-w-[200px]">
-                        <p className="truncate text-[10px]" title={p.cover_note}>{p.cover_note || "—"}</p>
+                        <p
+                          className="truncate text-[10px]"
+                          title={p.cover_note}
+                        >
+                          {p.cover_note || "—"}
+                        </p>
                       </td>
                       <td className="py-4 px-4 text-right">
-                        <span className={`inline-block px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider border ${getStatusStyle(p.status)}`}>
+                        <span
+                          className={`inline-block px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider border ${getStatusStyle(p.status)}`}
+                        >
                           {p.status}
                         </span>
                       </td>
-                      <td className="py-4 px-4 text-black/40 text-right whitespace-nowrap">{formatDate(p.submitted_at)}</td>
+                      <td className="py-4 px-4 text-black/40 text-right whitespace-nowrap">
+                        {formatDate(p.submitted_at)}
+                      </td>
                       <td className="py-4 pl-4 text-center">
                         {isPending && !taskAlreadyAccepted ? (
                           <div className="flex items-center justify-center gap-2">
@@ -254,7 +327,9 @@ export default function ClientProposalsPage() {
                               {isUpdating ? "Processing..." : "Accept"}
                             </button>
                             <button
-                              onClick={() => handleStatusUpdate(p._id, "rejected")}
+                              onClick={() =>
+                                handleStatusUpdate(p._id, "rejected")
+                              }
                               disabled={isUpdating}
                               className="bg-white hover:bg-red-50 text-red-600 px-3 py-1.5 text-[9px] font-bold uppercase tracking-wider transition-colors disabled:opacity-40 border border-red-300 cursor-pointer"
                             >
@@ -263,7 +338,9 @@ export default function ClientProposalsPage() {
                           </div>
                         ) : (
                           <span className="text-[9px] font-bold tracking-wider text-black/30 uppercase">
-                            {taskAlreadyAccepted && isPending ? "Task Filled" : "Resolved"}
+                            {taskAlreadyAccepted && isPending
+                              ? "Task Filled"
+                              : "Resolved"}
                           </span>
                         )}
                       </td>

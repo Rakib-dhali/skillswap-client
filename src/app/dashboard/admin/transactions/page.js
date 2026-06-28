@@ -6,24 +6,39 @@ export default function AdminTransactionsPage() {
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:5000";
+  const serverUrl =
+    process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:5000";
 
   useEffect(() => {
     let active = true;
     const fetchPayments = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`${serverUrl}/api/payments`);
+        const tokenResponse = await authClient.token();
+        if (tokenResponse.error) {
+          throw new Error(
+            tokenResponse.error.message || "Failed to retrieve auth token.",
+          );
+        }
+        const token = tokenResponse.data?.token;
+        if (!token) {
+          throw new Error("Failed to retrieve auth token.");
+        }
+    const res = await fetch(`${serverUrl}/api/payments`, {
+           headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         if (!res.ok) throw new Error("Unable to load transactions.");
         const data = await res.json();
         if (active) setPayments(data);
       } catch (err) {
-        if (active) setError(err.message || "Failed to load transaction history.");
+        if (active)
+          setError(err.message || "Failed to load transaction history.");
       } finally {
         if (active) setLoading(false);
       }
     };
-
     fetchPayments();
     return () => {
       active = false;
@@ -88,28 +103,42 @@ export default function AdminTransactionsPage() {
               ))
             ) : payments.length === 0 ? (
               <tr>
-                <td colSpan="7" className="py-8 text-center text-sm text-black/50">
+                <td
+                  colSpan="7"
+                  className="py-8 text-center text-sm text-black/50"
+                >
                   No transactions found.
                 </td>
               </tr>
             ) : (
               payments.map((payment) => (
-                <tr key={payment._id} className="hover:bg-black/2 transition-colors">
+                <tr
+                  key={payment._id}
+                  className="hover:bg-black/2 transition-colors"
+                >
                   <td className="py-4 px-3 font-mono text-xs text-black uppercase tracking-widest">
                     {payment.transaction_id || payment._id}
                   </td>
                   <td className="py-4 px-3 text-black/70 text-xs max-w-40 truncate">
                     {payment.task_id || "—"}
                   </td>
-                  <td className="py-4 px-3 text-black/70 text-xs">{payment.client_email}</td>
-                  <td className="py-4 px-3 text-black/70 text-xs">{payment.freelancer_email}</td>
-                  <td className="py-4 px-3 font-black text-black text-xs">${payment.amount ?? 0}</td>
+                  <td className="py-4 px-3 text-black/70 text-xs">
+                    {payment.client_email}
+                  </td>
+                  <td className="py-4 px-3 text-black/70 text-xs">
+                    {payment.freelancer_email}
+                  </td>
+                  <td className="py-4 px-3 font-black text-black text-xs">
+                    ${payment.amount ?? 0}
+                  </td>
                   <td className="py-4 px-3 text-xs uppercase tracking-wider">
                     <span className="inline-flex px-2.5 py-1 rounded-full bg-black/5 text-black/70">
                       {payment.payment_status || "complete"}
                     </span>
                   </td>
-                  <td className="py-4 px-3 text-black/50 text-xs">{formatDate(payment.paid_at)}</td>
+                  <td className="py-4 px-3 text-black/50 text-xs">
+                    {formatDate(payment.paid_at)}
+                  </td>
                 </tr>
               ))
             )}
