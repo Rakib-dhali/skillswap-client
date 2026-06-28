@@ -92,7 +92,7 @@ export default function ClientProposalsPage() {
             tokenResponse.error.message || "Failed to retrieve auth token.",
           );
         }
-        const token = tokenRes?.data?.token
+        const token = tokenResponse?.data?.token
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_SERVER_URL}/api/proposals/${proposalId}/status`,
         {

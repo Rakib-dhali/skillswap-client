@@ -1,5 +1,6 @@
 "use client";
 
+import { authClient } from "@/lib/auth-client";
 import { useEffect, useState } from "react";
 
 export default function AdminTransactionsPage() {

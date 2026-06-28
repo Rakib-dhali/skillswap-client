@@ -26,8 +26,22 @@ export default function MyTasksPage() {
     const fetchTasks = async () => {
       try {
         setLoading(true);
+        const tokenResponse = await authClient.token();
+
+        if (tokenResponse.error) {
+          throw new Error(
+            tokenResponse.error.message || "Failed to retrieve auth token.",
+          );
+        }
+        const token = tokenResponse?.data?.token
         const res = await fetch(
           `${serverUrl}/api/tasks/client/${encodeURIComponent(user.email)}`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          },
         );
         if (!res.ok) throw new Error("Failed to load tasks.");
         const data = await res.json();

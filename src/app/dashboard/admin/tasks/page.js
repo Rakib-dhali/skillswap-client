@@ -1,5 +1,6 @@
 "use client";
 
+import { authClient } from "@/lib/auth-client";
 import { useEffect, useState } from "react";
 
 const statusOptions = ["open", "in progress", "completed"];
@@ -9,6 +10,8 @@ export default function AdminTasksPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [savingId, setSavingId] = useState(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [taskToDelete, setTaskToDelete] = useState(null);
   const serverUrl =
     process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:5000";
 
@@ -59,12 +62,19 @@ export default function AdminTasksPage() {
   const updateStatus = async (taskId, status) => {
     setSavingId(taskId);
     try {
-      const tokenRes = await authClient.token();
+      const tokenResponse = await authClient.token();
+
+      if (tokenResponse.error) {
+        throw new Error(
+          tokenResponse.error.message || "Failed to retrieve auth token.",
+        );
+      }
+      const token = tokenResponse?.data?.token;
       const res = await fetch(`${serverUrl}/api/tasks/${taskId}/status`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${tokenRes?.data?.token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ status }),
       });
@@ -83,27 +93,40 @@ export default function AdminTasksPage() {
   };
 
   const deleteTask = async (taskId) => {
-    if (!window.confirm("Delete this task permanently?")) return;
     setSavingId(taskId);
 
     try {
+      const tokenResponse = await authClient.token();
+
+      if (tokenResponse.error) {
+        throw new Error(
+          tokenResponse.error.message || "Failed to retrieve auth token.",
+        );
+      }
+
+      const token = tokenResponse.data?.token;
+
       const res = await fetch(`${serverUrl}/api/tasks/${taskId}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${tokenRes?.data?.token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
+
       if (!res.ok) {
         const json = await res.json();
         throw new Error(json.error || "Unable to delete task.");
       }
+
       setTasks((current) => current.filter((task) => task._id !== taskId));
     } catch (err) {
       console.error(err);
       setError(err.message || "Failed to delete task.");
     } finally {
       setSavingId(null);
+      setDeleteModalOpen(false);
+      setTaskToDelete(null);
     }
   };
 
@@ -192,7 +215,10 @@ export default function AdminTasksPage() {
                   <td className="py-4 px-3 space-x-2">
                     <button
                       type="button"
-                      onClick={() => deleteTask(task._id)}
+                      onClick={() => {
+                        setTaskToDelete(task._id);
+                        setDeleteModalOpen(true);
+                      }}
                       disabled={savingId === task._id}
                       className="bg-red-700 text-white uppercase tracking-widest text-[10px] px-3 py-2 disabled:opacity-40"
                     >
@@ -205,6 +231,44 @@ export default function AdminTasksPage() {
           </tbody>
         </table>
       </div>
+      {deleteModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-md bg-white border border-black/10 shadow-xl">
+            <div className="p-6">
+              <h2 className="text-xl font-black uppercase tracking-tight">
+                Delete Task
+              </h2>
+
+              <p className="mt-3 text-sm text-black/70">
+                Are you sure you want to permanently delete this task? This
+                action cannot be undone.
+              </p>
+
+              <div className="mt-8 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDeleteModalOpen(false);
+                    setTaskToDelete(null);
+                  }}
+                  className="border border-black/20 px-5 py-2 text-xs font-bold uppercase tracking-widest hover:bg-black/5"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="button"
+                  disabled={savingId === taskToDelete}
+                  onClick={() => deleteTask(taskToDelete)}
+                  className="bg-red-700 text-white px-5 py-2 text-xs font-bold uppercase tracking-widest hover:bg-red-800 disabled:opacity-50"
+                >
+                  {savingId === taskToDelete ? "Deleting..." : "Delete"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
