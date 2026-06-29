@@ -1,14 +1,37 @@
+"use client";
+
 import { FaXTwitter, FaFacebookF, FaInstagram } from 'react-icons/fa6';
+import { motion } from "motion/react";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
+
+  const columnVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: (i) => ({
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.5,
+        delay: i * 0.1,
+        ease: [0.25, 0.46, 0.45, 0.94],
+      },
+    }),
+  };
 
   return (
     <footer className="bg-white border-t border-black/10 py-16 px-6 md:px-16 lg:px-24 select-none">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8 items-start">
         
         {/* Column 1: Brand & Contact Info */}
-        <div className="flex flex-col gap-4">
+        <motion.div
+          custom={0}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-40px" }}
+          variants={columnVariants}
+          className="flex flex-col gap-4"
+        >
           <h2 className="text-xl font-black tracking-tighter uppercase text-black">
             SkillSwap
           </h2>
@@ -18,10 +41,17 @@ export default function Footer() {
               ops@skillswap.com
             </a>
           </div>
-        </div>
+        </motion.div>
 
         {/* Column 2: Physical HQ Address */}
-        <div className="flex flex-col gap-3">
+        <motion.div
+          custom={1}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-40px" }}
+          variants={columnVariants}
+          className="flex flex-col gap-3"
+        >
           <span className="text-[10px] font-black tracking-[0.2em] text-black/40 uppercase">
             Headquarters
           </span>
@@ -30,10 +60,17 @@ export default function Footer() {
             New York, NY 10013<br />
             United States
           </address>
-        </div>
+        </motion.div>
 
         {/* Column 3: Navigation Links */}
-        <div className="flex flex-col gap-3">
+        <motion.div
+          custom={2}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-40px" }}
+          variants={columnVariants}
+          className="flex flex-col gap-3"
+        >
           <span className="text-[10px] font-black tracking-[0.2em] text-black/40 uppercase">
             Navigation
           </span>
@@ -48,45 +85,61 @@ export default function Footer() {
               Browse Freelancers
             </li>
           </ul>
-        </div>
+        </motion.div>
 
         {/* Column 4: Social Channels & Legal Copyright */}
-        <div className="flex flex-col lg:items-end gap-6 self-stretch justify-between">
+        <motion.div
+          custom={3}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-40px" }}
+          variants={columnVariants}
+          className="flex flex-col lg:items-end gap-6 self-stretch justify-between"
+        >
           <div className="flex flex-col lg:items-end gap-3">
             <span className="text-[10px] font-black tracking-[0.2em] text-black/40 uppercase">
               Connect
             </span>
             <div className="flex items-center gap-5 text-lg text-black/70">
               {/* X (Formerly Twitter) */}
-              <a 
+              <motion.a
                 href="https://x.com" 
                 target="_blank" 
                 rel="noopener noreferrer" 
                 className="hover:text-black transition-colors duration-200"
                 aria-label="X"
+                whileHover={{ scale: 1.2, y: -2 }}
+                whileTap={{ scale: 0.9 }}
+                transition={{ type: "spring", stiffness: 400, damping: 15 }}
               >
                 <FaXTwitter />
-              </a>
+              </motion.a>
               {/* Facebook */}
-              <a 
+              <motion.a
                 href="https://facebook.com" 
                 target="_blank" 
                 rel="noopener noreferrer" 
                 className="hover:text-black transition-colors duration-200"
                 aria-label="Facebook"
+                whileHover={{ scale: 1.2, y: -2 }}
+                whileTap={{ scale: 0.9 }}
+                transition={{ type: "spring", stiffness: 400, damping: 15 }}
               >
                 <FaFacebookF className="text-[16px]" />
-              </a>
+              </motion.a>
               {/* Instagram */}
-              <a 
+              <motion.a
                 href="https://instagram.com" 
                 target="_blank" 
                 rel="noopener noreferrer" 
                 className="hover:text-black transition-colors duration-200"
                 aria-label="Instagram"
+                whileHover={{ scale: 1.2, y: -2 }}
+                whileTap={{ scale: 0.9 }}
+                transition={{ type: "spring", stiffness: 400, damping: 15 }}
               >
                 <FaInstagram />
-              </a>
+              </motion.a>
             </div>
           </div>
 
@@ -94,7 +147,7 @@ export default function Footer() {
           <span className="text-[10px] font-bold tracking-widest text-black/40 uppercase whitespace-nowrap lg:text-right mt-4 lg:mt-0">
             © {currentYear} SKILLSWAP INC.
           </span>
-        </div>
+        </motion.div>
 
       </div>
     </footer>

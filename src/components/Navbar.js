@@ -39,7 +39,7 @@ const Navbar = () => {
       console.log(error);
     }
     if (data) {
-      router.push("/signin");
+      router.push("/");
     }
   };
 

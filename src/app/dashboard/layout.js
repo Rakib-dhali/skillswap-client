@@ -33,12 +33,12 @@ export default function DashboardLayout({ children }) {
   useEffect(() => {
     if (!isPending) {
       if (!session?.user) {
-        router.push("/signin");
+        router.push("/");
       } else {
         if (session.user.banned) {
           const signOutUser = async () => {
             await authClient.signOut();
-            router.push("/signin");
+            router.push("/");
           };
           signOutUser();
           return;

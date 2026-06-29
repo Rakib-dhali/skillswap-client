@@ -1,4 +1,7 @@
+"use client";
+
 import React from 'react';
+import { motion } from "motion/react";
 
 const steps = [
   {
@@ -24,24 +27,51 @@ export default function HowItWorks() {
       <div className="max-w-7xl mx-auto">
         
         {/* Section Title Header */}
-        <div className="max-w-xl mb-16 md:mb-24">
+        <motion.div
+          initial={{ opacity: 0, x: -40 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
+          className="max-w-xl mb-16 md:mb-24"
+        >
           <span className="text-[10px] font-black tracking-[0.2em] text-black/40 uppercase block mb-3">
             Workflow Optimization
           </span>
           <h2 className="text-2xl md:text-4xl font-black tracking-tight text-black uppercase">
             How It Works — Easy 3-Step Guide
           </h2>
-        </div>
+        </motion.div>
 
         {/* 3-Step Process Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-16 gap-y-16">
           {steps.map((step, index) => (
-            <div key={index} className="flex flex-col border-t border-black pt-6 relative">
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-60px" }}
+              transition={{
+                duration: 0.6,
+                delay: index * 0.2,
+                ease: [0.25, 0.46, 0.45, 0.94],
+              }}
+              className="flex flex-col border-t border-black pt-6 relative"
+            >
               
               {/* Massive Structural Numbering */}
-              <span className="text-4xl md:text-5xl font-black tracking-tighter text-black/10 absolute -top-7 lg:-top-8 bg-white pr-4">
+              <motion.span
+                initial={{ opacity: 0, scale: 0.5 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{
+                  duration: 0.5,
+                  delay: index * 0.2 + 0.2,
+                  ease: [0.25, 0.46, 0.45, 0.94],
+                }}
+                className="text-4xl md:text-5xl font-black tracking-tighter text-black/10 absolute -top-7 lg:-top-8 bg-white pr-4"
+              >
                 {step.number}
-              </span>
+              </motion.span>
 
               {/* Step Title */}
               <h3 className="text-xl font-black text-black uppercase tracking-tight mt-2 mb-4">
@@ -53,7 +83,7 @@ export default function HowItWorks() {
                 {step.description}
               </p>
               
-            </div>
+            </motion.div>
           ))}
         </div>
 

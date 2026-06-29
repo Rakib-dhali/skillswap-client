@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { motion } from "motion/react";
 
 function LatestFeatures() {
   const [tasksData, setTasksData] = useState([]);
@@ -26,23 +27,42 @@ function LatestFeatures() {
       <div className="max-w-7xl mx-auto">
         
         {/* Section Header */}
-        <div className="flex justify-between items-baseline mb-12">
+        <motion.div
+          initial={{ opacity: 0, x: -40 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
+          className="flex justify-between items-baseline mb-12"
+        >
           <h2 className="text-2xl md:text-3xl font-black tracking-tight text-black uppercase">
             Latest Featured Tasks
           </h2>
-          <button className="text-[10px] tracking-[0.2em] font-bold text-black/60 uppercase hover:text-black transition-colors duration-200 cursor-pointer">
+          <motion.button
+            whileHover={{ x: 4 }}
+            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            className="text-[10px] tracking-[0.2em] font-bold text-black/60 uppercase hover:text-black transition-colors duration-200 cursor-pointer"
+          >
             View All &gt;
-          </button>
-        </div>
+          </motion.button>
+        </motion.div>
 
         {/* Responsive Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-16">
-          {tasksData.map((task) => {
+          {tasksData.map((task, index) => {
             const taskId = task._id;
 
             return (
-              <div 
-                key={taskId} 
+              <motion.div
+                key={taskId}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{
+                  duration: 0.5,
+                  delay: index * 0.1,
+                  ease: [0.25, 0.46, 0.45, 0.94],
+                }}
+                whileHover={{ y: -4, transition: { type: "spring", stiffness: 300, damping: 20 } }}
                 className="flex flex-col hover:bg-gray-200 border-2 border-gray-200 transition-colors duration-200 cursor-pointer p-5 rounded-md justify-between group min-h-47.5"
               >
                 <div>
@@ -71,7 +91,7 @@ function LatestFeatures() {
                     🕒 {task.deadline || "No deadline"}
                   </span>
                 </div>
-              </div>
+              </motion.div>
             );
           })}
         </div>

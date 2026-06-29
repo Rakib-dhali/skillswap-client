@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { motion } from "motion/react";
 
 function TopFreelancers() {
 
@@ -44,9 +45,15 @@ function TopFreelancers() {
   return (
     <section className="bg-white py-20 px-6 md:px-16 lg:px-24 select-none">
       <div className="max-w-7xl mx-auto">
-        <h2 className="text-2xl md:text-3xl font-black tracking-tight text-black uppercase mb-16">
+        <motion.h2
+          initial={{ opacity: 0, x: -40 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
+          className="text-2xl md:text-3xl font-black tracking-tight text-black uppercase mb-16"
+        >
           Top Freelancers
-        </h2>
+        </motion.h2>
 
         {loading && (
           <div className="text-sm font-medium uppercase tracking-[0.2em] text-black/40">
@@ -62,9 +69,23 @@ function TopFreelancers() {
 
         {!loading && !error && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-y-16 gap-x-8 text-center">
-            {freelancers.map((freelancer) => (
-              <div key={freelancer.id} className="flex flex-col items-center">
-                <div className="w-28 h-28 rounded-full overflow-hidden border border-black/20 p-1 mb-4 flex items-center justify-center">
+            {freelancers.map((freelancer, index) => (
+              <motion.div
+                key={freelancer.id}
+                initial={{ opacity: 0, y: 50, scale: 0.95 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{
+                  duration: 0.6,
+                  delay: index * 0.15,
+                  ease: [0.25, 0.46, 0.45, 0.94],
+                }}
+                className="flex flex-col items-center"
+              >
+                <motion.div
+                  whileHover={{ scale: 1.08, transition: { type: "spring", stiffness: 300, damping: 20 } }}
+                  className="w-28 h-28 rounded-full overflow-hidden border border-black/20 p-1 mb-4 flex items-center justify-center"
+                >
                   <Image
                     src={freelancer.avatarUrl}
                     alt={freelancer.name}
@@ -72,7 +93,7 @@ function TopFreelancers() {
                     width={112}
                     height={112}
                   />
-                </div>
+                </motion.div>
 
                 <h3 className="text-lg font-bold text-black mb-1">{freelancer.name}</h3>
 
@@ -83,10 +104,17 @@ function TopFreelancers() {
 
                 <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-xs font-medium text-black/60 mb-8">
                   {freelancer.skills.length > 0 ? (
-                    freelancer.skills.map((skill, index) => (
-                      <span className="bg-gray-200 px-2 py-1 rounded-sm" key={`${freelancer.id}-${index}`}>
+                    freelancer.skills.map((skill, skillIndex) => (
+                      <motion.span
+                        key={`${freelancer.id}-${skillIndex}`}
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.3, delay: index * 0.15 + skillIndex * 0.05 }}
+                        className="bg-gray-200 px-2 py-1 rounded-sm"
+                      >
                         {skill}
-                      </span>
+                      </motion.span>
                     ))
                   ) : (
                     <span className="text-black/40">No skills listed</span>
@@ -94,11 +122,16 @@ function TopFreelancers() {
                 </div>
 
                 <Link href={`/freelancer/${freelancer.id}`}>
-                  <button className="text-[10px] font-bold tracking-[0.2em] text-black/70 uppercase hover:text-black border-b border-transparent hover:border-black transition-all pb-0.5 cursor-pointer">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.97 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                    className="text-[10px] font-bold tracking-[0.2em] text-black/70 uppercase hover:text-black border-b border-transparent hover:border-black transition-all pb-0.5 cursor-pointer"
+                  >
                     Hire Directly
-                  </button>
+                  </motion.button>
                 </Link>
-              </div>
+              </motion.div>
             ))}
           </div>
         )}
